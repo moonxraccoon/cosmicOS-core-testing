@@ -164,9 +164,9 @@ typedef struct _USART_port {
  */
 typedef enum usart_err {
     USART_OK,               /*!< USART function success */
-    USART_UNDEFINED,        /*!< USART port undefined (NULL) */
-    USART_IT_BUF_FULL,      /*!< USART full interrupt mode buffer */
-    USART_RX_EMPTY,
+    USART_ERR_UNDEFINED,        /*!< USART port undefined (NULL) */
+    USART_ERR_IT_BUF_FULL,      /*!< USART full interrupt mode buffer */
+    USART_ERR_RX_EMPTY,
 } usart_err_t;
 
 

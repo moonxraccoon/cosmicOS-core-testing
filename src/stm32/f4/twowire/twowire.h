@@ -44,13 +44,30 @@
 #define I2C_DUTY_2      0x00
 #define I2C_DUTY_16_9   0x01
 
+#define I2C_READY       0x00
+#define I2C_BUSY_RX     0x01
+#define I2C_BUSY_TX     0x02
+
 
 typedef enum _twowire_err_h {
     I2C_OK,
-    I2C_PORT_NOT_AVAILABLE,
-    I2C_FREQ_TOO_LOW,
-    I2C_FREQ_TOO_HIGH,
+    I2C_ERR_PORT_NOT_AVAILABLE,
+    I2C_ERR_FREQ_TOO_LOW,
+    I2C_ERR_FREQ_TOO_HIGH,
+    I2C_ERR_BUS,
+    I2C_ERR_ARBLOSS,
+    I2C_ERR_AF,
+    I2C_ERR_OVR,
+    I2C_ERR_PEC,
+    I2C_ERR_TIMEOUT,
+    I2C_ERR_SMBALERT,
 } twowire_err_t;
+
+typedef struct __twowire_it_handle {
+    uint8_t *tx_buf;
+    uint8_t *rx_buf;
+    uint8_t status;
+} __twowire_it_handle_t;
 
 typedef struct _I2C_port {
     I2C_TypeDef *i2c;
@@ -58,6 +75,8 @@ typedef struct _I2C_port {
     uint8_t mode;
     uint8_t duty;
     bool set_up;
+    bool interrupt_driven;
+    bool slave;
     // TODO: add other settings
 } I2C_port;
 

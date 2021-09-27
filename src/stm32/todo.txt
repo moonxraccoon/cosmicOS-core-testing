@@ -1,0 +1,1 @@
+2021-09-27 Make general notes on interrupt I2C due:2021-09-27

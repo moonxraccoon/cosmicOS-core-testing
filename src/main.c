@@ -3,7 +3,8 @@
 #include "stm32/f4/gpio/gpio.h"
 #include "stm32/f4/delay/delay.h"
 #include "stm32/f4/uart/uart.h"
-#include "stm32/f4/twowire/twowire.h" #include "bitutils.h"
+#include "stm32/f4/twowire/twowire.h" 
+#include "bitutils.h"
 //#include "stm32/f4/rcc/rcc.h"
 //#include "stm32/f4/exti/exti.h"
 

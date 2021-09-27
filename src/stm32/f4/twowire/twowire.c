@@ -40,15 +40,15 @@ twowire_err_t I2C_init(I2C_port *port) {
         GPIO_select_alternate(PC9, GPIO_AF04);  
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
     } else {
-        return I2C_PORT_NOT_AVAILABLE;
+        return I2C_ERR_PORT_NOT_AVAILABLE;
     }
 
     if (port->mode == I2C_FAST_MODE && port->frequency < I2C_FREQ_MIN_FM ) {
-        return I2C_FREQ_TOO_LOW;
+        return I2C_ERR_FREQ_TOO_LOW;
     } else if (port->frequency < I2C_FREQ_MIN_SM) {
-        return I2C_FREQ_TOO_LOW; 
+        return I2C_ERR_FREQ_TOO_LOW; 
     } else if (port->frequency > I2C_FREQ_MAX) {
-        return I2C_FREQ_TOO_HIGH;
+        return I2C_ERR_FREQ_TOO_HIGH;
     }
 
     // Reset CRx, CCR and TRISE
@@ -59,6 +59,18 @@ twowire_err_t I2C_init(I2C_port *port) {
 
     (port->i2c)->CR1 |= I2C_CR1_SWRST;
     (port->i2c)->CR1 &= ~I2C_CR1_SWRST;
+    if (port->interrupt_driven) {
+        if (port->i2c == I2C1) {
+            NVIC_EnableIRQ(I2C1_ER_IRQn);
+            NVIC_EnableIRQ(I2C1_EV_IRQn);
+        } else if (port->i2c == I2C2) {
+            NVIC_EnableIRQ(I2C2_ER_IRQn);
+            NVIC_EnableIRQ(I2C2_EV_IRQn);
+        } else if (port->i2c == I2C3) {
+            NVIC_EnableIRQ(I2C3_ER_IRQn);
+            NVIC_EnableIRQ(I2C3_EV_IRQn);
+        }
+    }
 
     (port->i2c)->CR2 |= port->frequency;
     (port->i2c)->CCR = (uint32_t) _I2C_ccr_calc(port);

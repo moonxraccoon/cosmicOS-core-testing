@@ -20,7 +20,7 @@
  */
 usart_err_t USART_init(USART_port *port) {
     if (port == NULL) {
-        return USART_UNDEFINED;
+        return USART_ERR_UNDEFINED;
     }
 
     if ( port->usart == USART1) {
@@ -52,7 +52,7 @@ usart_err_t USART_init(USART_port *port) {
         port->__it_buf = &__buf_usart6;
         
     } else {
-        return USART_UNDEFINED;
+        return USART_ERR_UNDEFINED;
     }
 
     (port->usart)->CR1 = 0x00;
@@ -99,7 +99,7 @@ usart_err_t USART_write(USART_port port, int ch) {
         __usart_it_buf *buf;
         buf = port.__it_buf; 
         if (__USART_IT_TX_BUF_LEN(buf) != USART_OK) {
-            return USART_IT_BUF_FULL;
+            return USART_ERR_IT_BUF_FULL;
         }
         buf->tx_buf[ buf->tx_in & (USART_IT_TX_BUF_SIZE-1) ] = ch;
         buf->tx_in++;
@@ -202,10 +202,10 @@ usart_err_t USART_printf(USART_port port, const char *format, ...) {
 
     for (int i = 0; i < strlen(buff); i++) {
         if ( buff[i] == '\n' && USART_write(port, '\r') != USART_OK) {
-            return USART_IT_BUF_FULL;   
+            return USART_ERR_IT_BUF_FULL;   
         }
         if (USART_write(port, buff[i]) != USART_OK) {
-            return USART_IT_BUF_FULL;
+            return USART_ERR_IT_BUF_FULL;
         }
     }
     va_end(args);
@@ -273,13 +273,13 @@ void USART_disable(USART_port *port) {
 
 usart_err_t __USART_IT_TX_BUF_LEN(__usart_it_buf *buf) { 
     return (buf->tx_in - buf->tx_out >= USART_IT_TX_BUF_SIZE) ?
-        (USART_IT_BUF_FULL) :
+        (USART_ERR_IT_BUF_FULL) :
         (USART_OK);
 }
 
 usart_err_t __USART_IT_RX_BUF_LEN(__usart_it_buf *buf) { 
     return (buf->rx_in - buf->rx_out >= USART_IT_RX_BUF_SIZE) ?
-        (USART_IT_BUF_FULL) :
+        (USART_ERR_IT_BUF_FULL) :
         (USART_OK);
 }
 
