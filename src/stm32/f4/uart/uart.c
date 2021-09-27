@@ -96,7 +96,7 @@ usart_err_t USART_write(USART_port port, int ch) {
         (port.usart)->DR = (ch & 0xFF);
         return USART_OK;
     } else {
-        __usart_it_buf *buf;
+        __usart_it_handle *buf;
         buf = port.__it_buf; 
         if (__USART_IT_TX_BUF_LEN(buf) != USART_OK) {
             return USART_ERR_IT_BUF_FULL;
@@ -132,7 +132,7 @@ uint16_t USART_compute_div(uint32_t periph_clk, uint32_t baud) {
 int16_t USART_read(USART_port port) {
     char ch;
     
-    __usart_it_buf *buf;
+    __usart_it_handle *buf;
     buf = port.__it_buf; 
     if ((buf->rx_in - buf->rx_out) == 0) {
         return (-1);
@@ -271,13 +271,13 @@ void USART_disable(USART_port *port) {
 }
 
 
-usart_err_t __USART_IT_TX_BUF_LEN(__usart_it_buf *buf) { 
+usart_err_t __USART_IT_TX_BUF_LEN(__usart_it_handle *buf) { 
     return (buf->tx_in - buf->tx_out >= USART_IT_TX_BUF_SIZE) ?
         (USART_ERR_IT_BUF_FULL) :
         (USART_OK);
 }
 
-usart_err_t __USART_IT_RX_BUF_LEN(__usart_it_buf *buf) { 
+usart_err_t __USART_IT_RX_BUF_LEN(__usart_it_handle *buf) { 
     return (buf->rx_in - buf->rx_out >= USART_IT_RX_BUF_SIZE) ?
         (USART_ERR_IT_BUF_FULL) :
         (USART_OK);
@@ -288,7 +288,7 @@ usart_err_t __USART_IT_RX_BUF_LEN(__usart_it_buf *buf) {
  */
 void USART1_IRQHandler() {
     //TODO
-    __usart_it_buf *buf;
+    __usart_it_handle *buf;
     if (USART1->SR & USART_FLAG_TXE) {
         USART1->SR &= ~USART_FLAG_TXE;
         buf = &__buf_usart1;
@@ -317,7 +317,7 @@ void USART1_IRQHandler() {
  */
 void USART2_IRQHandler() {
     //GPIO_toggle(PB8);
-    __usart_it_buf *buf;
+    __usart_it_handle *buf;
 
     if (USART2->SR & USART_FLAG_TXE) {
         USART2->SR &= ~USART_FLAG_TXE;
@@ -346,7 +346,7 @@ void USART2_IRQHandler() {
  * Interrupt Request handler for the USART6 port
  */
 void USART6_IRQHandler() {
-    __usart_it_buf *buf;
+    __usart_it_handle *buf;
     if (USART6->SR & USART_FLAG_TXE) {
         USART6->SR &= ~USART_FLAG_TXE;
         buf = &__buf_usart6;
