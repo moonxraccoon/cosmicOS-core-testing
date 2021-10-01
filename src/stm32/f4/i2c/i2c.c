@@ -40,7 +40,7 @@ twowire_err_t I2C_init(I2C_port *port) {
         GPIO_select_alternate(PC9, GPIO_AF04);  
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
     } else {
-        return I2C_ERR_PORT_NOT_AVAILABLE;
+        return I2C_ERR_PORT_UNDEFINED;
     }
 
     if (port->mode == I2C_FAST_MODE && port->frequency < I2C_FREQ_MIN_FM ) {
@@ -70,6 +70,9 @@ twowire_err_t I2C_init(I2C_port *port) {
             NVIC_EnableIRQ(I2C3_ER_IRQn);
             NVIC_EnableIRQ(I2C3_EV_IRQn);
         }
+        setbit_var(port->i2c->CR2, I2C_ITBUFEN_BIT);
+        setbit_var(port->i2c->CR2, I2C_ITEVTEN_BIT);
+        setbit_var(port->i2c->CR2, I2C_ITERREN_BIT);
     }
 
     (port->i2c)->CR2 |= port->frequency;
@@ -143,7 +146,7 @@ float _I2C_trise_calc(I2C_port *port) {
 uint8_t I2C_read(I2C_port *port, uint8_t slave, uint8_t memaddr) {
     volatile int tmp;
     uint8_t out;
-    while(I2C1->SR2 & I2C_SR2_BUSY);     
+    while((port->i2c)->SR2 & I2C_SR2_BUSY);     
     // Generate start condition
     (port->i2c)->CR1 |= I2C_CR1_ACK;
     (port->i2c)->CR1 |= I2C_CR1_START;
@@ -160,7 +163,6 @@ uint8_t I2C_read(I2C_port *port, uint8_t slave, uint8_t memaddr) {
     (port->i2c)->DR = memaddr;
     // check TXE flag
     while(!((port->i2c)->SR1 & I2C_SR1_TXE));
-    //USART_printf(USART2, "Fail 3\n");
     // generate restart condition
     (port->i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1

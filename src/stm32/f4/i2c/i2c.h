@@ -21,6 +21,7 @@
 
 #include <stm32f4xx.h>
 #include <stdbool.h>
+#include "../../../bitutils.h"
 
 #define I2C_STD_MODE    0x00
 #define I2C_FAST_MODE   0x01
@@ -49,6 +50,11 @@
 #define I2C_BUSY_TX     0x02
 
 
+#define I2C_ITBUFEN_BIT     (0x0A)
+#define I2C_ITEVTEN_BIT     (0x09)
+#define I2C_ITERREN_BIT     (0x08)
+
+
 typedef enum _twowire_err_h {
     I2C_OK,
     I2C_ERR_PORT_NOT_AVAILABLE,
@@ -61,6 +67,7 @@ typedef enum _twowire_err_h {
     I2C_ERR_PEC,
     I2C_ERR_TIMEOUT,
     I2C_ERR_SMBALERT,
+    I2C_ERR_PORT_UNDEFINED,
 } twowire_err_t;
 
 typedef struct __twowire_it_handle {
