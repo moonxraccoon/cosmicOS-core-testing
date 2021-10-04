@@ -1,13 +1,13 @@
 #include <stm32f4xx.h>
 #include "mpu.h"
-#include "../../stm32/f4/twowire/twowire.h"
+#include "../../stm32/f4/i2c/i2c.h"
 #include "../../stm32/f4/delay/delay.h"
 
 
 mpu_err_t MPU_init(mpu_t *mpu) {
-    if (I2C_init(mpu->port) != I2C_OK) {
-        return MPU_I2C_FAILED;
-    }
+    //if (I2C_init(mpu->port) != I2C_OK) {
+    //    return MPU_I2C_FAILED;
+    //}
     uint8_t init[1] = {0x00};
     I2C_write_burst(mpu->port, (mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), PWR_MGMT_1, 1, init);
     MPU_set_gyro_range(mpu);

@@ -3,7 +3,7 @@
 #include "stm32/f4/gpio/gpio.h"
 #include "stm32/f4/delay/delay.h"
 #include "stm32/f4/uart/uart.h"
-#include "stm32/f4/twowire/twowire.h" 
+#include "stm32/f4/i2c/i2c.h" 
 #include "bitutils.h"
 //#include "stm32/f4/rcc/rcc.h"
 //#include "stm32/f4/exti/exti.h"
@@ -13,7 +13,7 @@
 #define TEST_LED    PA8
 
 
-uint16_t read_x(I2C_port *port) {
+uint16_t read_x(I2C_port port) {
     uint8_t data1, data2;
     data1 = I2C_read(port, MPU_ADDR, 0x3B);
     data2 = I2C_read(port, MPU_ADDR, 0x3C);
@@ -44,7 +44,7 @@ int main(void) {
     
     USART_init(&port);   
     
-    //I2C_init(&i2c1);
+    I2C_init(&i2c1);
 
     //USART_init(USART2, 115200, USART_RX_TX_MODE, USART_STOPBITS_1, USART_PARITY_NEN, USART_PARITY_EVEN); 
     //if( EXTI_attach_gpio(GPIOB, 7, EXTI_FALLING_EDGE) != EXTI_OK) {
@@ -85,6 +85,11 @@ int main(void) {
         //    USART_printf(USART2, "You typed: %s\n", usart_test);
         //}
         //USART_printf(&port, "x: %6d\n", read_x(&i2c1));
+        //read_x(i2c1);
+        if (I2C_read(i2c1, MPU_ADDR, 0x3C) != I2C_OK) {
+            USART_printf(port, "[x] error on I2C port\n");
+        }
+        
     }
 }
 

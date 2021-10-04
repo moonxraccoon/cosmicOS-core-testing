@@ -1,4 +1,4 @@
-#include "twowire.h"
+#include "i2c.h"
 #include "../gpio/gpio.h"
 #include <stm32f4xx.h>
 #include <stdbool.h>
@@ -10,9 +10,9 @@
  * 
  * @param port I2C port configuration struct
  *
- * @return twowire_err_t error code
+ * @return i2c_err_t error code
  */
-twowire_err_t I2C_init(I2C_port *port) {
+i2c_err_t I2C_init(I2C_port *port) {
     port->set_up = false;
     if (port->i2c == I2C1) {
         // enabling GPIO 6,7, selecting alternate function, setting speed
@@ -143,42 +143,54 @@ float _I2C_trise_calc(I2C_port *port) {
  *
  * @return byte read from the I2C device (uint8_t)
  */
-uint8_t I2C_read(I2C_port *port, uint8_t slave, uint8_t memaddr) {
+uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr) {
+    if (!port.set_up) {
+        return I2C_ERR_NOT_CONFIGURED;
+    }
+    i2c_err_t err;
     volatile int tmp;
     uint8_t out;
-    while((port->i2c)->SR2 & I2C_SR2_BUSY);     
+    while((port.i2c)->SR2 & I2C_SR2_BUSY) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    }
     // Generate start condition
-    (port->i2c)->CR1 |= I2C_CR1_ACK;
-    (port->i2c)->CR1 |= I2C_CR1_START;
+    (port.i2c)->CR1 |= I2C_CR1_ACK;
+    (port.i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1
-    while(!((port->i2c)->SR1 & I2C_SR1_SB));
+    while(!((port.i2c)->SR1 & I2C_SR1_SB));
     // put address in the data register
-    (port->i2c)->DR = slave << 1;
+    (port.i2c)->DR = slave << 1;
     // set ACK high
     //(port->i2c)->CR1 |= I2C_CR1_ACK;
     // wait for ADDR=1
-    while(!((port->i2c)->SR1 & I2C_SR1_ADDR));
-    tmp = (port->i2c)->SR2;
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
+        if ((err = I2C_get_err(port)) == I2C_ERR_AF) {
+            return err;
+        }
+    }
+    tmp = (port.i2c)->SR2;
     //send memory address
-    (port->i2c)->DR = memaddr;
+    (port.i2c)->DR = memaddr;
     // check TXE flag
-    while(!((port->i2c)->SR1 & I2C_SR1_TXE));
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
     // generate restart condition
-    (port->i2c)->CR1 |= I2C_CR1_START;
+    (port.i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1
-    while(!((port->i2c)->SR1 & I2C_SR1_SB));
+    while(!((port.i2c)->SR1 & I2C_SR1_SB));
     // put address in the data register (read)
-    (port->i2c)->DR = (slave << 1) | 1;
+    (port.i2c)->DR = (slave << 1) | 1;
     // wait for ADDR=1
-    while(!((port->i2c)->SR1 & I2C_SR1_ADDR));
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
     //disable ACK
-    (port->i2c)->CR1 &= ~I2C_CR1_ACK;
-    tmp = (port->i2c)->SR2;
+    (port.i2c)->CR1 &= ~I2C_CR1_ACK;
+    tmp = (port.i2c)->SR2;
     //generate stop
-    (port->i2c)->CR1 |= I2C_CR1_STOP;
+    (port.i2c)->CR1 |= I2C_CR1_STOP;
     // check for RXNE flag
-    while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
-    out = (port->i2c)->DR;
+    while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+    out = (port.i2c)->DR;
     return out;
 }
 
@@ -195,47 +207,54 @@ uint8_t I2C_read(I2C_port *port, uint8_t slave, uint8_t memaddr) {
  *
  * @return error-code - error code
  */
-twowire_err_t I2C_read_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
+i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
+    if (!port.set_up) {
+        return I2C_ERR_NOT_CONFIGURED;
+    }
     volatile int tmp;
-    while((port->i2c)->SR2 & I2C_SR2_BUSY);     
+    while((port.i2c)->SR2 & I2C_SR2_BUSY);     
     // Generate start condition
-    (port->i2c)->CR1 |= I2C_CR1_START;
+    (port.i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1
-    while(!((port->i2c)->SR1 & I2C_SR1_SB));
+    while(!((port.i2c)->SR1 & I2C_SR1_SB));
     // put address in the data register
-    (port->i2c)->DR = slave << 1;
+    (port.i2c)->DR = slave << 1;
     // set ACK high
     //(port->i2c)->CR1 |= I2C_CR1_ACK;
     // wait for ADDR=1
-    while(!((port->i2c)->SR1 & I2C_SR1_ADDR));
-    tmp = (port->i2c)->SR1;
-    while(!((port->i2c)->SR1 & I2C_SR1_TXE));
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
+        if (port.i2c->SR1 & I2C_AFERR) {
+            return I2C_ERR_AF;
+        }
+    }
+    tmp = (port.i2c)->SR1;
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
     //send memory address
-    (port->i2c)->DR = memaddr;
+    (port.i2c)->DR = memaddr;
     // check TXE flag
-    while(!((port->i2c)->SR1 & I2C_SR1_TXE));
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
     // generate restart condition
-    (port->i2c)->CR1 |= I2C_CR1_START;
+    (port.i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1
-    while(!((port->i2c)->SR1 & I2C_SR1_SB));
+    while(!((port.i2c)->SR1 & I2C_SR1_SB));
     // put address in the data register (read)
-    (port->i2c)->DR = (slave << 1) | 1;
+    (port.i2c)->DR = (slave << 1) | 1;
     // wait for ADDR=1
-    while(!((port->i2c)->SR1 & I2C_SR1_ADDR));
-    tmp = (port->i2c)->SR1;
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
+    tmp = (port.i2c)->SR1;
     //disable ACK
-    (port->i2c)->CR1 |= I2C_CR1_ACK;
+    (port.i2c)->CR1 |= I2C_CR1_ACK;
 
     for (int i = 0; i < n; i++) {
         if (i == n-1) {
-            (port->i2c)->CR1 &= ~I2C_CR1_ACK;
-            (port->i2c)->CR1 |= I2C_CR1_STOP;
-            while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
-            data[i] = (port->i2c)->DR;
+            (port.i2c)->CR1 &= ~I2C_CR1_ACK;
+            (port.i2c)->CR1 |= I2C_CR1_STOP;
+            while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+            data[i] = (port.i2c)->DR;
             break;
         } else {
-            while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
-            data[i] = (port->i2c)->DR;
+            while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+            data[i] = (port.i2c)->DR;
         }
     }
     //while (n > 0U) {
@@ -253,7 +272,7 @@ twowire_err_t I2C_read_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uin
     //    }
     //}
     // check for RXNE flag
-    while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
+    while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
 
 
     return I2C_OK;
@@ -261,30 +280,50 @@ twowire_err_t I2C_read_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uin
 
 
 
-twowire_err_t I2C_write_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
+i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
+    if (!port.set_up) {
+        return I2C_ERR_NOT_CONFIGURED;
+    }
     volatile int tmp;
-    while((port->i2c)->SR2 & I2C_SR2_BUSY);     
+    while((port.i2c)->SR2 & I2C_SR2_BUSY);     
     // Generate start condition
-    (port->i2c)->CR1 |= I2C_CR1_START;
+    (port.i2c)->CR1 |= I2C_CR1_START;
     // wait for SB=1
-    while(!((port->i2c)->SR1 & I2C_SR1_SB));
+    while(!((port.i2c)->SR1 & I2C_SR1_SB));
     // put address in the data register
-    (port->i2c)->DR = slave << 1;
+    (port.i2c)->DR = slave << 1;
     // set ACK high
     //(port->i2c)->CR1 |= I2C_CR1_ACK;
     // wait for ADDR=1
-    while(!((port->i2c)->SR1 & I2C_SR1_ADDR));
-    tmp = (port->i2c)->SR2;
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
+    tmp = (port.i2c)->SR2;
     // check TXE flag
-    while(!((port->i2c)->SR1 & I2C_SR1_TXE));
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
     //send memory address
-    (port->i2c)->DR = memaddr;
+    (port.i2c)->DR = memaddr;
     for (int i = 0; i < n; i++) { 
-        while(!((port->i2c)->SR1 & I2C_SR1_TXE));
-        (port->i2c)->DR = data[i];
+        while(!((port.i2c)->SR1 & I2C_SR1_TXE));
+        (port.i2c)->DR = data[i];
     }
-    while(!((port->i2c)->SR1 & I2C_SR1_BTF));
-    (port->i2c)->CR1 |= I2C_CR1_STOP; 
+    while(!((port.i2c)->SR1 & I2C_SR1_BTF));
+    (port.i2c)->CR1 |= I2C_CR1_STOP; 
     
+    return I2C_OK;
+}
+
+i2c_err_t I2C_get_err(I2C_port port) {
+    if (port.i2c->SR1 & I2C_BERR) {
+        return I2C_ERR_BUS;
+    } else if (port.i2c->SR1 & I2C_ARLOERR) {
+        return I2C_ERR_ARBLOSS;
+    } else if (port.i2c->SR1 & I2C_AFERR) {
+        return I2C_ERR_AF;
+    } else if (port.i2c->SR1 & I2C_OVRERR) {
+        return I2C_ERR_OVR;
+    } else if (port.i2c->SR1 & I2C_PECERR) {
+        return I2C_ERR_PEC;
+    } else {
+        return I2C_OK;
+    }
     return I2C_OK;
 }

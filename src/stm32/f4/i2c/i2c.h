@@ -16,8 +16,8 @@
  * @version: v0.1
  *
  */
-#ifndef _TWOWIRE_H
-#define _TWOWIRE_H
+#ifndef _I2C_H
+#define _I2C_H
 
 #include <stm32f4xx.h>
 #include <stdbool.h>
@@ -49,13 +49,26 @@
 #define I2C_BUSY_RX     0x01
 #define I2C_BUSY_TX     0x02
 
+#define I2C_BERR_OFFSET     (8)
+#define I2C_ARLO_OFFSET     (9)
+#define I2C_AF_OFFSET       (10)
+#define I2C_OVR_OFFSET      (11)
+#define I2C_PECERR_OFFSET   (12)
+
+#define I2C_BERR        (1 << I2C_BERR_OFFSET)
+#define I2C_ARLOERR     (1 << I2C_ARLO_OFFSET)
+#define I2C_AFERR       (1 << I2C_AF_OFFSET)
+#define I2C_OVRERR      (1 << I2C_OVR_OFFSET)
+#define I2C_PECERR      (1 << I2C_PECERR_OFFSET)
+
+
 
 #define I2C_ITBUFEN_BIT     (0x0A)
 #define I2C_ITEVTEN_BIT     (0x09)
 #define I2C_ITERREN_BIT     (0x08)
 
 
-typedef enum _twowire_err_h {
+typedef enum _i2c_err_h {
     I2C_OK,
     I2C_ERR_PORT_NOT_AVAILABLE,
     I2C_ERR_FREQ_TOO_LOW,
@@ -68,7 +81,8 @@ typedef enum _twowire_err_h {
     I2C_ERR_TIMEOUT,
     I2C_ERR_SMBALERT,
     I2C_ERR_PORT_UNDEFINED,
-} twowire_err_t;
+    I2C_ERR_NOT_CONFIGURED,
+} i2c_err_t;
 
 typedef struct __twowire_it_handle {
     uint8_t *tx_buf;
@@ -88,11 +102,12 @@ typedef struct _I2C_port {
 } I2C_port;
 
 
-twowire_err_t I2C_init(I2C_port *port);
-uint8_t I2C_read(I2C_port *port, uint8_t slave, uint8_t memaddr);
-twowire_err_t I2C_read_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
-twowire_err_t I2C_write(I2C_port *port, uint8_t slave, uint8_t memaddr, uint8_t data);
-twowire_err_t I2C_write_burst(I2C_port *port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
+i2c_err_t I2C_init(I2C_port *port);
+uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr);
+i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
+i2c_err_t I2C_write(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t data);
+i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
+i2c_err_t I2C_get_err(I2C_port port);
 
 float _I2C_ccr_calc(I2C_port *port);
 float _I2C_trise_calc(I2C_port *port);
