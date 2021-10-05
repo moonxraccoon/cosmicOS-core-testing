@@ -209,7 +209,12 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     }
     volatile int tmp;
     i2c_err_t err;
-    while((port.i2c)->SR2 & I2C_SR2_BUSY);     
+    volatile uint8_t reg = memaddr;
+    while((port.i2c)->SR2 & I2C_SR2_BUSY) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    }
     // GENERATE START CONDITION
     if ((err = _I2C_send_start(port)) != I2C_OK) {
         return err; 
@@ -218,12 +223,15 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
-    tmp = (port.i2c)->SR1;
-    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
+    tmp = (port.i2c)->SR2;
     //send memory address
     (port.i2c)->DR = memaddr;
     // check TXE flag
-    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE)) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    }
     // GENERATE  RESTART CONDITION
     if ((err = _I2C_send_start(port)) != I2C_OK) {
         return err;
@@ -236,11 +244,11 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     }
     
     
-    tmp = (port.i2c)->SR1;
+    tmp = (port.i2c)->SR2;
     //disable ACK
     (port.i2c)->CR1 |= I2C_CR1_ACK;
 
-    for (int i = 0; i < n; i++) {
+    for (volatile int i = 0; i < n; i++) {
         if (i == n-1) {
             (port.i2c)->CR1 &= ~I2C_CR1_ACK;
             (port.i2c)->CR1 |= I2C_CR1_STOP;
@@ -255,19 +263,19 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     //while (n > 0U) {
     //    // if one byte
     //    if (n == 1) {
-    //        (port->i2c)->CR1 &= ~I2C_CR1_ACK;
-    //        (port->i2c)->CR1 |= I2C_CR1_STOP;
-    //        while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
-    //        *data++ = (port->i2c)->DR;
+    //        (port.i2c)->CR1 &= ~I2C_CR1_ACK;
+    //        (port.i2c)->CR1 |= I2C_CR1_STOP;
+    //        while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+    //        *data++ = (port.i2c)->DR;
     //        break;
     //    } else {
-    //        while(!((port->i2c)->SR1 & I2C_SR1_RXNE));
-    //        *data++ = (port->i2c)->DR;
+    //        while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+    //        *data++ = (port.i2c)->DR;
     //        n--; 
     //    }
     //}
     // check for RXNE flag
-    while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
+    //while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
 
 
     return I2C_OK;

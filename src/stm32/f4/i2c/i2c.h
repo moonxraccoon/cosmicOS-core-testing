@@ -113,6 +113,7 @@ i2c_err_t I2C_write(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t data)
 i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
 i2c_err_t I2C_get_err(I2C_port port);
 char*     I2C_get_err_str(i2c_err_t err);
+i2c_err_t I2C_handle_err(I2C_port port, i2c_err_t err);
 
 float _I2C_ccr_calc(I2C_port *port);
 float _I2C_trise_calc(I2C_port *port);
