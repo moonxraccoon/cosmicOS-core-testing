@@ -15,8 +15,15 @@
 
 uint16_t read_x(I2C_port port) {
     uint8_t data1, data2;
-    data1 = I2C_read(port, MPU_ADDR, 0x3B);
-    data2 = I2C_read(port, MPU_ADDR, 0x3C);
+    i2c_err_t err;
+    err = I2C_read(port, MPU_ADDR, 0x3B, &data1);
+    if (err != I2C_OK) {
+        return 0;
+    }
+    err = I2C_read(port, MPU_ADDR, 0x3C, &data2);
+    if (err != I2C_OK) {
+        return 0;
+    }
     return (data1 << 8) | data2;
 }
 
@@ -45,13 +52,16 @@ int main(void) {
     USART_init(&port);   
     
     I2C_init(&i2c1);
-
+    i2c_err_t i2c_err;
     //USART_init(USART2, 115200, USART_RX_TX_MODE, USART_STOPBITS_1, USART_PARITY_NEN, USART_PARITY_EVEN); 
     //if( EXTI_attach_gpio(GPIOB, 7, EXTI_FALLING_EDGE) != EXTI_OK) {
     //    USART_printf(USART2, "EXTI init failed...\n");
     //}
     uint8_t init[2] = {0x00, 0x00};
-    //I2C_write_burst(&i2c1, MPU_ADDR, 0x6B, 1, init); 
+    i2c_err = I2C_write_burst(i2c1, MPU_ADDR, 0x6B, 1, init);
+    USART_printf(port, "%s\n", I2C_get_err_str(i2c_err));
+    delayMs(2000);
+    
     //const clock_t *test = &RCC_25MHZ_TO_84MHZ;
     char usart_test[255] = {0};
     unsigned long int cycle = 0; 
@@ -61,10 +71,9 @@ int main(void) {
 
     //USART_printf(&port, "CCR value: %.12f\n", _I2C_ccr_calc(&i2c1));
     //USART_printf(&port, "TRISE value: %.12f\n", _I2C_trise_calc(&i2c1));
-    
+    uint8_t i2c_data; 
     while (1) {
         GPIO_toggle(DEBUG_LED);
-        delayMs(500);
         
         //char ch = USART_getc(&port);
         //USART_printf(&port, "getc: %c\n", ch);
@@ -86,10 +95,11 @@ int main(void) {
         //}
         //USART_printf(&port, "x: %6d\n", read_x(&i2c1));
         //read_x(i2c1);
-        if (I2C_read(i2c1, MPU_ADDR, 0x3C) != I2C_OK) {
-            USART_printf(port, "[x] error on I2C port\n");
-        }
-        
+        i2c_err = I2C_read(i2c1, MPU_ADDR, 0x3C, &i2c_data);
+        USART_printf(port, "%s\n", I2C_get_err_str(i2c_err)); 
+        uint16_t mpu_test = read_x(i2c1); 
+        USART_printf(port, "X: %d\n", read_x(i2c1));
+        delayMs(500);
     }
 }
 

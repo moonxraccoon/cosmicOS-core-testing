@@ -13,7 +13,7 @@
  * @return i2c_err_t error code
  */
 i2c_err_t I2C_init(I2C_port *port) {
-    port->set_up = false;
+    port->_set_up = false;
     if (port->i2c == I2C1) {
         // enabling GPIO 6,7, selecting alternate function, setting speed
         GPIO_enable(PB6, GPIO_ALTERNATE);
@@ -82,7 +82,7 @@ i2c_err_t I2C_init(I2C_port *port) {
     (port->i2c)->TRISE |= (uint32_t) _I2C_trise_calc(port); 
 
     (port->i2c)->CR1 |= I2C_CR1_PE;
-    port->set_up = true;
+    port->_set_up = true;
     return I2C_OK;
 }
 
@@ -143,46 +143,42 @@ float _I2C_trise_calc(I2C_port *port) {
  *
  * @return byte read from the I2C device (uint8_t)
  */
-uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr) {
-    if (!port.set_up) {
+i2c_err_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t *data) {
+
+    if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
-    i2c_err_t err;
     volatile int tmp;
     uint8_t out;
+    i2c_err_t err;
     while((port.i2c)->SR2 & I2C_SR2_BUSY) {
         if ((err = I2C_get_err(port)) != I2C_OK) {
             return err;
         }
     }
     // Generate start condition
-    (port.i2c)->CR1 |= I2C_CR1_ACK;
-    (port.i2c)->CR1 |= I2C_CR1_START;
-    // wait for SB=1
-    while(!((port.i2c)->SR1 & I2C_SR1_SB));
-    // put address in the data register
-    (port.i2c)->DR = slave << 1;
-    // set ACK high
-    //(port->i2c)->CR1 |= I2C_CR1_ACK;
-    // wait for ADDR=1
-    while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
-        if ((err = I2C_get_err(port)) == I2C_ERR_AF) {
-            return err;
-        }
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err;
     }
+
+    // Send address of slave
+    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+        return err;
+    }
+            
     tmp = (port.i2c)->SR2;
     //send memory address
     (port.i2c)->DR = memaddr;
     // check TXE flag
-    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
-    // generate restart condition
-    (port.i2c)->CR1 |= I2C_CR1_START;
-    // wait for SB=1
-    while(!((port.i2c)->SR1 & I2C_SR1_SB));
-    // put address in the data register (read)
-    (port.i2c)->DR = (slave << 1) | 1;
-    // wait for ADDR=1
-    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE)); 
+    //// GENERATE RESTART CONDITION
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err;
+    }
+    //// put address in read mode
+    if ((err = _I2C_send_addr(port, slave, I2C_READ)) != I2C_OK) {
+        return err;
+    }
     //disable ACK
     (port.i2c)->CR1 &= ~I2C_CR1_ACK;
     tmp = (port.i2c)->SR2;
@@ -190,8 +186,8 @@ uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr) {
     (port.i2c)->CR1 |= I2C_CR1_STOP;
     // check for RXNE flag
     while(!((port.i2c)->SR1 & I2C_SR1_RXNE));
-    out = (port.i2c)->DR;
-    return out;
+    *data = (port.i2c)->DR;
+    return I2C_OK;
 }
 
 /**
@@ -208,24 +204,19 @@ uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr) {
  * @return error-code - error code
  */
 i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
-    if (!port.set_up) {
+    if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
     volatile int tmp;
+    i2c_err_t err;
     while((port.i2c)->SR2 & I2C_SR2_BUSY);     
-    // Generate start condition
-    (port.i2c)->CR1 |= I2C_CR1_START;
-    // wait for SB=1
-    while(!((port.i2c)->SR1 & I2C_SR1_SB));
-    // put address in the data register
-    (port.i2c)->DR = slave << 1;
-    // set ACK high
-    //(port->i2c)->CR1 |= I2C_CR1_ACK;
-    // wait for ADDR=1
-    while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
-        if (port.i2c->SR1 & I2C_AFERR) {
-            return I2C_ERR_AF;
-        }
+    // GENERATE START CONDITION
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err; 
+    }
+    // *NEW* SEND SLAVE ADDRESS
+    if ((err = _I2C_send_addr(port, slave, false)) != I2C_OK) {
+        return err;
     }
     tmp = (port.i2c)->SR1;
     while(!((port.i2c)->SR1 & I2C_SR1_TXE));
@@ -233,14 +224,18 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     (port.i2c)->DR = memaddr;
     // check TXE flag
     while(!((port.i2c)->SR1 & I2C_SR1_TXE));
-    // generate restart condition
-    (port.i2c)->CR1 |= I2C_CR1_START;
-    // wait for SB=1
-    while(!((port.i2c)->SR1 & I2C_SR1_SB));
-    // put address in the data register (read)
-    (port.i2c)->DR = (slave << 1) | 1;
-    // wait for ADDR=1
-    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
+    // GENERATE  RESTART CONDITION
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err;
+    }
+    
+    
+    // SEND READ ADDR IN READ MODE
+    if ((err = _I2C_send_addr(port, slave, true)) != I2C_OK) {
+        return err;
+    }
+    
+    
     tmp = (port.i2c)->SR1;
     //disable ACK
     (port.i2c)->CR1 |= I2C_CR1_ACK;
@@ -281,21 +276,27 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
 
 
 i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data) {
-    if (!port.set_up) {
+    if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
     volatile int tmp;
-    while((port.i2c)->SR2 & I2C_SR2_BUSY);     
-    // Generate start condition
-    (port.i2c)->CR1 |= I2C_CR1_START;
-    // wait for SB=1
-    while(!((port.i2c)->SR1 & I2C_SR1_SB));
-    // put address in the data register
-    (port.i2c)->DR = slave << 1;
-    // set ACK high
-    //(port->i2c)->CR1 |= I2C_CR1_ACK;
-    // wait for ADDR=1
-    while(!((port.i2c)->SR1 & I2C_SR1_ADDR));
+    i2c_err_t err;
+    while((port.i2c)->SR2 & I2C_SR2_BUSY) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    }
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err;
+    }
+    
+    
+    // SEND WRITE ADDRESS
+    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+        return err;
+    }
+
+
     tmp = (port.i2c)->SR2;
     // check TXE flag
     while(!((port.i2c)->SR1 & I2C_SR1_TXE));
@@ -326,4 +327,76 @@ i2c_err_t I2C_get_err(I2C_port port) {
         return I2C_OK;
     }
     return I2C_OK;
+}
+
+
+/**
+ * I2C send start on port
+ * @param port port to generate start
+ * @return err `I2C_OK` on success, otherwise `I2C_ERR_x`
+ */
+i2c_err_t _I2C_send_start(I2C_port port) {
+    // return `I2C_ERR_NOT_CONFIGURED` if port is not set up
+    if (!port._set_up) {
+        return I2C_ERR_NOT_CONFIGURED;
+    }
+    i2c_err_t err = I2C_OK;
+    // set ACK bit and generate start condition
+    port.i2c->CR1 |= I2C_CR1_ACK;
+    port.i2c->CR1 |= I2C_CR1_START;
+    // wait until SB bit is set unless error occurs
+    while (!(port.i2c->SR1 & I2C_SR1_SB)) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    } 
+    return err;
+}
+
+
+i2c_err_t _I2C_send_addr(I2C_port port, uint8_t addr, bool rw) {
+    _I2C_send_data(port, (rw)?((addr<<1)|1):(addr<<1)); 
+    i2c_err_t err = I2C_OK; 
+    while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
+        if ((err = I2C_get_err(port)) == I2C_ERR_AF) {
+            return err;
+        }
+    }
+    return err;
+}
+
+i2c_err_t _I2C_send_data(I2C_port port, uint8_t data) {
+    port.i2c->DR = data;
+    return I2C_OK;
+}
+
+char *I2C_get_err_str(i2c_err_t err) {
+    switch (err) {
+        case I2C_ERR_AF:
+            return "[I2C] acknowledge failure";
+        case I2C_ERR_BUS:
+            return "[I2C] bus error";
+        case I2C_ERR_OVR:
+            return "[I2C] overrun error";
+        case I2C_ERR_PEC:
+            return "[I2C] PEC error";
+        case I2C_ERR_ARBLOSS:
+            return "[I2C] arbitration loss";
+        case I2C_ERR_TIMEOUT:
+            return "[SMBus] timeout";
+        case I2C_ERR_SMBALERT:
+            return "[SMBus] SMBus alert";
+        case I2C_ERR_FREQ_TOO_LOW:
+            return "[I2C] set frequency to low";
+        case I2C_ERR_FREQ_TOO_HIGH:
+            return "[I2C] set frequency too high";
+        case I2C_ERR_NOT_CONFIGURED:
+            return "[I2C] port not set up: call `I2C_init()`";
+        case I2C_ERR_PORT_UNDEFINED:
+            return "[I2C] port unavailable for this MCU or undefined";
+        case I2C_ERR_PORT_NOT_AVAILABLE:
+            return "[I2C] port not available";
+        default:
+            return "[I2C] Ok";
+    }
 }

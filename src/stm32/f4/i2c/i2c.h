@@ -49,11 +49,11 @@
 #define I2C_BUSY_RX     0x01
 #define I2C_BUSY_TX     0x02
 
-#define I2C_BERR_OFFSET     (8)
-#define I2C_ARLO_OFFSET     (9)
-#define I2C_AF_OFFSET       (10)
-#define I2C_OVR_OFFSET      (11)
-#define I2C_PECERR_OFFSET   (12)
+#define I2C_BERR_OFFSET     (uint8_t)(0x08)
+#define I2C_ARLO_OFFSET     (uint8_t)(0x09)
+#define I2C_AF_OFFSET       (uint8_t)(0x0A)
+#define I2C_OVR_OFFSET      (uint8_t)(0x0B)
+#define I2C_PECERR_OFFSET   (uint8_t)(0x0C)
 
 #define I2C_BERR        (1 << I2C_BERR_OFFSET)
 #define I2C_ARLOERR     (1 << I2C_ARLO_OFFSET)
@@ -66,6 +66,10 @@
 #define I2C_ITBUFEN_BIT     (0x0A)
 #define I2C_ITEVTEN_BIT     (0x09)
 #define I2C_ITERREN_BIT     (0x08)
+
+
+#define I2C_READ            true
+#define I2C_WRITE           false
 
 
 typedef enum _i2c_err_h {
@@ -95,7 +99,7 @@ typedef struct _I2C_port {
     uint8_t frequency;
     uint8_t mode;
     uint8_t duty;
-    bool set_up;
+    bool _set_up;
     bool interrupt_driven;
     bool slave;
     // TODO: add other settings
@@ -103,14 +107,20 @@ typedef struct _I2C_port {
 
 
 i2c_err_t I2C_init(I2C_port *port);
-uint8_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr);
+i2c_err_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t *data);
 i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
 i2c_err_t I2C_write(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t data);
 i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t n, uint8_t *data);
 i2c_err_t I2C_get_err(I2C_port port);
+char*     I2C_get_err_str(i2c_err_t err);
 
 float _I2C_ccr_calc(I2C_port *port);
 float _I2C_trise_calc(I2C_port *port);
+
+i2c_err_t _I2C_send_start(I2C_port port);
+i2c_err_t _I2C_send_addr(I2C_port port, uint8_t addr, bool rw);
+i2c_err_t _I2C_send_data(I2C_port port, uint8_t data);
+i2c_err_t _I2C_send_stop(I2C_port port);
 
 
 
