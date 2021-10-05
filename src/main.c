@@ -58,7 +58,7 @@ int main(void) {
     //    USART_printf(USART2, "EXTI init failed...\n");
     //}
     uint8_t init[2] = {0x00, 0x00};
-    i2c_err = I2C_write_burst(i2c1, MPU_ADDR, 0x6B, 1, init);
+    i2c_err = I2C_write(i2c1, MPU_ADDR, 0x6B,0x00);
     USART_printf(port, "%s\n", I2C_get_err_str(i2c_err));
     delayMs(2000);
     

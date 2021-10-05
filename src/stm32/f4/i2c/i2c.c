@@ -215,7 +215,7 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
         return err; 
     }
     // *NEW* SEND SLAVE ADDRESS
-    if ((err = _I2C_send_addr(port, slave, false)) != I2C_OK) {
+    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
     tmp = (port.i2c)->SR1;
@@ -231,7 +231,7 @@ i2c_err_t I2C_read_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t 
     
     
     // SEND READ ADDR IN READ MODE
-    if ((err = _I2C_send_addr(port, slave, true)) != I2C_OK) {
+    if ((err = _I2C_send_addr(port, slave, I2C_READ)) != I2C_OK) {
         return err;
     }
     
@@ -306,6 +306,41 @@ i2c_err_t I2C_write_burst(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t
         while(!((port.i2c)->SR1 & I2C_SR1_TXE));
         (port.i2c)->DR = data[i];
     }
+    while(!((port.i2c)->SR1 & I2C_SR1_BTF));
+    (port.i2c)->CR1 |= I2C_CR1_STOP; 
+    
+    return I2C_OK;
+}
+
+i2c_err_t I2C_write(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t data) {
+    if (!port._set_up) {
+        return I2C_ERR_NOT_CONFIGURED;
+    }
+    volatile int tmp;
+    i2c_err_t err;
+    while((port.i2c)->SR2 & I2C_SR2_BUSY) {
+        if ((err = I2C_get_err(port)) != I2C_OK) {
+            return err;
+        }
+    }
+    if ((err = _I2C_send_start(port)) != I2C_OK) {
+        return err;
+    }
+    
+    
+    // SEND WRITE ADDRESS
+    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+        return err;
+    }
+
+
+    tmp = (port.i2c)->SR2;
+    // check TXE flag
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
+    //send memory address
+    (port.i2c)->DR = memaddr;
+    while(!((port.i2c)->SR1 & I2C_SR1_TXE));
+    (port.i2c)->DR = data;
     while(!((port.i2c)->SR1 & I2C_SR1_BTF));
     (port.i2c)->CR1 |= I2C_CR1_STOP; 
     
@@ -387,7 +422,7 @@ char *I2C_get_err_str(i2c_err_t err) {
         case I2C_ERR_SMBALERT:
             return "[SMBus] SMBus alert";
         case I2C_ERR_FREQ_TOO_LOW:
-            return "[I2C] set frequency to low";
+            return "[I2C] set frequency too low";
         case I2C_ERR_FREQ_TOO_HIGH:
             return "[I2C] set frequency too high";
         case I2C_ERR_NOT_CONFIGURED:
@@ -397,6 +432,6 @@ char *I2C_get_err_str(i2c_err_t err) {
         case I2C_ERR_PORT_NOT_AVAILABLE:
             return "[I2C] port not available";
         default:
-            return "[I2C] Ok";
+            return "[I2C] Ok!";
     }
 }
