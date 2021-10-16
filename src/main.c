@@ -33,7 +33,7 @@ uint16_t read_x(I2C_port port, USART_port usart) {
 
 int main(void) {
 
-    RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
+    //RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
 
     I2C_port i2c1 = {
         .i2c = I2C1,

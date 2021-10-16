@@ -5,7 +5,7 @@
 #include "../rcc/rcc.h"
 
 //#define CYCLES_MS   (rcc_active_clock.ahb_freq / 1000)
-#define CYCLES_MS   (96000)
+#define CYCLES_MS   (ahb_freq/1000)
 
 #define CTRL_ENABLE         (1U<<0)
 #define CTRL_CLKSRC         (1U<<2)
