@@ -7,6 +7,8 @@
 #include "drivers/mpu6050/mpu.h"
 #include "bitutils.h"
 #include "stm32/f4/rcc/rcc.h"
+#include "stm32/f4/timer/timer.h"
+#include "stm32/stm32.h"
 //#include "stm32/f4/exti/exti.h"
 
 #define MPU_ADDR    0x68
@@ -33,8 +35,8 @@ uint16_t read_x(I2C_port port, USART_port usart) {
 
 int main(void) {
 
-    //RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
-
+    RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
+    cosmicOS_init();
     I2C_port i2c1 = {
         .i2c = I2C1,
         .frequency = 16,
@@ -95,6 +97,7 @@ int main(void) {
     uint8_t bit_test = 0;
     usart_err_t usart_err;
     USART_printf(port, "APB2 clock: %d\n", ahb_freq);
+    uint32_t last_time = millis();
     while (1) {
         GPIO_toggle(DEBUG_LED);
                 
@@ -143,6 +146,7 @@ int main(void) {
         if (mpu_err == MPU_OK) {
             USART_printf(port, "Gyro ->  X: % -9.3f  Y: % -9.3f  Z: % -9.3f    Accel ->  X: % -9.3f  Y: % -9.3f  Z: % -9.3f\r", gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]);
         }
+        //USART_printf(port, "time: %9d\r", millis() - last_time);
         //int32_t accel_raw[3];
         //mpu_err = MPU_accel_raw(mpu, accel_raw);
         //if (mpu_err != MPU_OK) {
@@ -156,7 +160,9 @@ int main(void) {
                 
 
 
-        delayMs(100);
+        //delayMs(100);
+        while(millis() - last_time < 200);
+        last_time = millis();
     }
 }
 
