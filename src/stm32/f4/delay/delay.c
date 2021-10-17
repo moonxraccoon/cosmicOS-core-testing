@@ -30,27 +30,6 @@ void delayUs(uint32_t us) {
     SysTick->CTRL = 0x00;
 }
 
-void smart_delay_ms(uint32_t ms) {
-    uint32_t last_time = millis();
-    while(millis() - last_time >= ms); 
-}
 
 // NEW DELAY FUNCTIONS
 
-void delay_ms(uint32_t ms) {
-    
-}
-
-void delay_us(uint32_t us) {
-
-}
-
-uint32_t millis() {
-    return syscount;
-}
-
-void SysTick_Handler(void) {
-    if (SysTick->CTRL & CTRL_COUNTFLAG) {
-        syscount++;
-    }
-}

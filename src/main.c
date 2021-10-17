@@ -160,9 +160,9 @@ int main(void) {
                 
 
 
-        //delayMs(100);
-        while(millis() - last_time < 200);
-        last_time = millis();
+        delayMs(200);
+        //while(millis() - last_time < 200);
+        //last_time = millis();
     }
 }
 
