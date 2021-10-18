@@ -4,6 +4,8 @@
 #include "../../stm32/f4/delay/delay.h"
 #include "../../stm32/f4/uart/uart.h"
 
+volatile int32_t mpu_gyro_calib[3];
+volatile int32_t mpu_accel_calib[3];
 
 mpu_err_t MPU_init(mpu_t *mpu) {
     if (I2C_init(&mpu->port) != I2C_OK) {
@@ -55,7 +57,10 @@ mpu_err_t MPU_gyro_x_raw(mpu_t mpu, int32_t *data) {
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
-    *data = (int16_t)((out[0] << 8) | out[1]);
+    *data = (int16_t)(((out[0] << 8) | out[1]));
+    //if (mpu._calibrated) {
+    //    *data -= mpu_gyro_calib[0];
+    //}
     delayMs(2);
     return MPU_OK; 
 }
@@ -113,7 +118,7 @@ mpu_err_t MPU_accel_x_raw(mpu_t mpu, int32_t *data) {
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
-    *data = (int16_t)((out[0] << 8) | out[1]);
+    *data = (int32_t)((out[0] << 8) | out[1]);
     delayMs(2);
     return MPU_OK;
 }
@@ -164,46 +169,60 @@ mpu_err_t MPU_accel_raw(mpu_t mpu, int32_t *data) {
 
 
 
-mpu_err_t MPU_calibrate(mpu_t mpu) {
-    uint32_t errors = 0;
+mpu_err_t MPU_calibrate(mpu_t *mpu) {
+    if (mpu->_calibrated) {
+        return MPU_ERR_ALREADY_CALIBRATED;
+    }
+    volatile uint32_t errors = 0;
     int32_t gyro[3];
     int32_t accel[3];
-    mpu_err_t err;
+    volatile mpu_err_t err;
     for (volatile uint32_t i = 0; i < MPU_NUM_CALIBRATIONS; i++) {
-        int32_t tmp = 0;
-        if ((err = MPU_gyro_x_raw(mpu, &tmp)) != MPU_OK) {
-            errors++; 
-        }
-        gyro[0] += tmp;
-        if ((err = MPU_gyro_y_raw(mpu, &tmp)) != MPU_OK) {
+        //int32_t tmp = 0;
+        //if ((err = MPU_gyro_x_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++; 
+        //}
+        //gyro[0] += tmp;
+        //if ((err = MPU_gyro_y_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++;
+        //}
+        //gyro[1] += tmp;
+        //if ((err = MPU_gyro_z_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++;
+        //}
+        //gyro[2] += tmp;
+        //if ((err = MPU_accel_x_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++;
+        //}
+        //accel[0] += tmp;
+        //if ((err = MPU_accel_y_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++;
+        //}
+        //accel[1] += tmp;
+        //if ((err = MPU_accel_z_raw(mpu, &tmp)) != MPU_OK) {
+        //    errors++;
+        //}
+        //accel[2] += tmp;
+        if ((err = MPU_gyro_raw(*mpu, gyro)) != MPU_OK) {
             errors++;
         }
-        gyro[1] += tmp;
-        if ((err = MPU_gyro_z_raw(mpu, &tmp)) != MPU_OK) {
+        if ((err = MPU_accel_raw(*mpu, accel)) != MPU_OK) {
             errors++;
         }
-        gyro[2] += tmp;
-        if ((err = MPU_accel_x_raw(mpu, &tmp)) != MPU_OK) {
-            errors++;
+        for (int j = 0; j < 3; j++) {
+            mpu_gyro_calib[j] += gyro[j];
+            mpu_accel_calib[j] += accel[j];
         }
-        accel[0] += tmp;
-        if ((err = MPU_accel_y_raw(mpu, &tmp)) != MPU_OK) {
-            errors++;
-        }
-        accel[1] += tmp;
-        if ((err = MPU_accel_z_raw(mpu, &tmp)) != MPU_OK) {
-            errors++;
-        }
-        accel[2] += tmp;
         delayMs(20);
         if (errors > MPU_MAX_ERRORS) {
             return MPU_ERR_I2C_FAILED;
         }
     }
     for (volatile uint32_t i = 0; i < 3; i++) {
-        mpu_gyro_calib[i] = gyro[i] / MPU_NUM_CALIBRATIONS;
-        mpu_accel_calib[i] = accel[i] / MPU_NUM_CALIBRATIONS;
+        mpu_gyro_calib[i] /= MPU_NUM_CALIBRATIONS;
+        mpu_accel_calib[i] /= MPU_NUM_CALIBRATIONS;
     }
+    mpu->_calibrated = true;
     return MPU_OK;
 }
 
@@ -242,7 +261,10 @@ mpu_err_t MPU_gyro_x(mpu_t mpu, float *data) {
     if (err != MPU_OK) {
         return err;
     }
-    *data = raw / MPU_get_gyro_range(mpu);
+    if (mpu._calibrated) {
+        raw -= mpu_gyro_calib[0];
+    }
+    *data = (raw / MPU_get_gyro_range(mpu));
     return MPU_OK;
 }
 
@@ -252,6 +274,9 @@ mpu_err_t MPU_gyro_y(mpu_t mpu, float *data) {
     err = MPU_gyro_y_raw(mpu, &raw); 
     if (err != MPU_OK) {
         return err;
+    }
+    if (mpu._calibrated) {
+        raw -= mpu_gyro_calib[1];
     }
     *data = raw / MPU_get_gyro_range(mpu);
     return MPU_OK;
@@ -263,6 +288,9 @@ mpu_err_t MPU_gyro_z(mpu_t mpu, float *data) {
     err = MPU_gyro_z_raw(mpu, &raw); 
     if (err != MPU_OK) {
         return err;
+    }
+    if (mpu._calibrated) {
+        raw -= mpu_gyro_calib[2];
     }
     *data = raw / MPU_get_gyro_range(mpu);
     return MPU_OK;
@@ -295,6 +323,9 @@ mpu_err_t MPU_accel_x(mpu_t mpu, float *data) {
     if (err != MPU_OK) {
         return err;
     }
+    if (mpu._calibrated) {
+        raw -= mpu_accel_calib[0];
+    }
     *data = raw / (float) MPU_get_accel_range(mpu);
     return MPU_OK;
 }
@@ -306,6 +337,9 @@ mpu_err_t MPU_accel_y(mpu_t mpu, float *data) {
     if (err != MPU_OK) {
         return err;
     }
+    if (mpu._calibrated) {
+        raw -= mpu_accel_calib[0];
+    }
     *data = raw / (float) MPU_get_accel_range(mpu);
     return MPU_OK;
 }
@@ -316,6 +350,9 @@ mpu_err_t MPU_accel_z(mpu_t mpu, float *data) {
     err = MPU_accel_z_raw(mpu, &raw); 
     if (err != MPU_OK) {
         return err;
+    }
+    if (mpu._calibrated) {
+        raw -= mpu_accel_calib[0];
     }
     *data = raw / (float) MPU_get_accel_range(mpu);
     return MPU_OK;
@@ -338,5 +375,23 @@ mpu_err_t MPU_accel(mpu_t mpu, float *data, int32_t n) {
     if (err != MPU_OK) {
         return err;
     }
+    return MPU_OK;
+}
+
+char *MPU_err_str(mpu_err_t err) {
+    switch (err) {
+        case MPU_ERR_I2C_FAILED:
+            return "[-] I2C bus error";
+        case MPU_ERR_ARR_SIZE:
+            return "[-] Wrong input array size";
+        default:
+            return "[+] MPU Ok!";
+    }
+}
+
+
+mpu_err_t MPU_set_offsets(mpu_t *mpu, int32_t gx, int32_t gy, int32_t gz, int32_t ax, int32_t ay, int32_t az) {
+    
+
     return MPU_OK;
 }
