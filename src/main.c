@@ -66,7 +66,7 @@ int main(void) {
     timer_port_t tim5 = {
         .timer = TIM5,
         .prescaler = apb1_freq/1000,
-        .autoreload = 1000,
+        .autoreload = 200,
         .func = toggle_test_led,
         .interrup_en = true,
     };

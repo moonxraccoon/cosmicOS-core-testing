@@ -28,7 +28,6 @@ tim_err_t TIM_init(const struct timer_port *port) {
     TIM_reset_count(port);
     // set counting direction
     TIM_set_dir(port);
-
     if (port->interrup_en) {
         port->timer->DIER |= TIM_UIE;
         _TIM_NVIC_enable(port);

@@ -29,13 +29,18 @@ typedef enum {
     TIM_DIR_DOWN = (1 << TIM_DIR_OFFSET),
 } tim_dir_t;
 
+/**
+ * Timer object structure
+ * Use in combination with 
+ * all the other functions
+ */
 typedef struct timer_port {
-    TIM_TypeDef *timer; 
-    uint32_t prescaler;
-    uint32_t autoreload;
-    tim_dir_t dir;
-    bool interrup_en; 
-    void (*func)(void);
+    TIM_TypeDef *timer;         /*! `TIMx` structure which timer to use  */
+    uint32_t prescaler;         /*! Prescaler value - normaly stuff like: `AHB_FREQ/1000` for 1ms*/
+    uint32_t autoreload;        /*! autoreload value - value the timer will count up to */
+    tim_dir_t dir;              /*! counting direction (`RCC_DIR_UP`, `RCC_DIR_DOWN`)*/
+    bool interrup_en;           /*! enable interrupt on update event */
+    void (*func)(void);         /*! function to execute on interrupt */
 } timer_port_t;
 
 typedef enum timer_err {
@@ -44,6 +49,7 @@ typedef enum timer_err {
     TIM_ERR_CONFIG_PRESCALER,
     TIM_ERR_CONFIG_AUTORELOAD
 } tim_err_t;
+
 
 
 tim_err_t TIM_init(const struct timer_port *port);
@@ -59,8 +65,6 @@ void TIM_rcc_enable(const struct timer_port *port);
 void TIM_rcc_disable(const struct timer_port *port);
 
 void _TIM_NVIC_enable(const struct timer_port *port);
-
-
 
 
 
