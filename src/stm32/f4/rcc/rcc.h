@@ -215,7 +215,7 @@ volatile static clock_t *rcc_active_clock;
 
 void RCC_system_clock_config(clock_t clock);
 
-void RCC_periphclock_select(rcc_clock_port_t port, uint32_t periph, uint8_t enable);
+void RCC_periphclock_enable(rcc_clock_port_t port, uint32_t periph, uint8_t enable);
 void RCC_set_pllm_pre(uint32_t pll_m);
 void RCC_set_plln_pre(uint32_t pll_n);
 void RCC_set_pllp_pre(uint32_t pll_p);
