@@ -1,8 +1,12 @@
 #ifndef _COSMIC_BNO_H
 #define _COSMIC_BNO_H
 
+#include <stm32f4xx.h>
+#include "../../stm32/f4/i2c/i2c.c"
+
 #define BNO_ADDR    ()
 
+// Page 1 
 #define BNO_MAG_RADIUS_MSB      (0x6A)
 #define BNO_MAG_RADIUS_LSB      (0x69)
 #define BNO_ACC_RADIUS_MSB      (0x68)
@@ -91,6 +95,11 @@
 #define BNO_MAG_ID              (0x02)
 #define BNO_ACC_ID              (0x01)
 #define BNO_CHIP_ID             (0x00)
+
+
+typedef struct bno {
+    I2C_port *i2c; 
+} bno_t;
 
 
 #endif
