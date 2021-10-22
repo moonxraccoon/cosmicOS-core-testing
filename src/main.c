@@ -95,11 +95,12 @@ int main(void) {
     //const clock_t *test = &RCC_25MHZ_TO_84MHZ;
     char usart_test[512];
     unsigned long int cycle = 0; 
-    uint8_t bit_test = 0;
+    uint8_t bit_test = 0, data1;
     usart_err_t usart_err;
     USART_printf(port, "APB2 clock: %d\n", ahb_freq);
     uint32_t last_time = millis();
     TIM_init(&tim5);
+    float accel[3];
     while (1) {
         USART_printf(port, "cycle: %d\n", cycle++);
         //GPIO_toggle(DEBUG_LED);        
@@ -111,6 +112,10 @@ int main(void) {
         //    USART_printf(port, "[x] Gyroscope reading failed\n");
         //}
         ////delayMs(2);
+        i2c_err = I2C_read(i2c1, MPU_ADDR, 0x3B, &data1);
+        if (i2c_err != I2C_OK) {
+            USART_printf(port, "%s\n", I2C_get_err_str(i2c_err));
+        }
         //mpu_err = MPU_accel(mpu, accel, 3);
         //if (mpu_err != MPU_OK) {
         //    USART_printf(port, "[x] Accelerometer reading failed\n");
