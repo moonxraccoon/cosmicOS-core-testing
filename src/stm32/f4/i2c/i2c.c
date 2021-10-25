@@ -157,7 +157,7 @@ i2c_err_t I2C_read(I2C_port port, uint8_t slave, uint8_t memaddr, uint8_t *data)
     uint8_t out;
     i2c_err_t err;
     // TODO: fix infinite loop on wrong device
-    GPIO_write(PA8, GPIO_ON);
+    //GPIO_write(PA8, GPIO_ON);
     SysTick->LOAD = (apb1_freq/1000);
     SysTick->VAL = 0x00;
     SysTick->CTRL = CTRL_ENABLE | CTRL_CLKSRC;
@@ -496,29 +496,31 @@ i2c_err_t _I2C_send_stop(I2C_port port) {
 char *I2C_get_err_str(i2c_err_t err) {
     switch (err) {
         case I2C_ERR_AF:
-            return "[I2C] acknowledge failure";
+            return "acknowledge failure";
         case I2C_ERR_BUS:
-            return "[I2C] bus error";
+            return "bus error";
         case I2C_ERR_OVR:
-            return "[I2C] overrun error";
+            return "overrun error";
         case I2C_ERR_PEC:
-            return "[I2C] PEC error";
+            return "PEC error";
         case I2C_ERR_ARBLOSS:
-            return "[I2C] arbitration loss";
+            return "arbitration loss";
         case I2C_ERR_TIMEOUT:
             return "[SMBus] timeout";
         case I2C_ERR_SMBALERT:
             return "[SMBus] SMBus alert";
         case I2C_ERR_FREQ_TOO_LOW:
-            return "[I2C] set frequency too low";
+            return "set frequency too low";
         case I2C_ERR_FREQ_TOO_HIGH:
-            return "[I2C] set frequency too high";
+            return "set frequency too high";
         case I2C_ERR_NOT_CONFIGURED:
-            return "[I2C] port not set up: call `I2C_init()`";
+            return "port not set up: call `I2C_init()`";
         case I2C_ERR_PORT_UNDEFINED:
-            return "[I2C] port unavailable for this MCU or undefined";
+            return "port unavailable for this MCU or undefined";
         case I2C_ERR_PORT_NOT_AVAILABLE:
-            return "[I2C] port not available";
+            return "port not available";
+        case I2C_ERR_BUS_TIMEOUT:
+            return "bus busy -> timeout";
         default:
             return "[I2C] Ok!";
     }

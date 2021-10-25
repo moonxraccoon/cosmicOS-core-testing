@@ -10,7 +10,9 @@
  * |       |___ added byte read function (tested)
  * |       |___ added burst byte read function
  * |       |___ added burst write function
- * |       
+ * |
+ * |_____v0.2       
+ * |       |___ added timout on `BUSY` flag
  *
  * @author: cosmicraccoon (aka Daniel Mironow)
  * @version: v0.1
