@@ -24,18 +24,19 @@ bool BNO_init(bno_t *bno) {
     }
     delayMs(2);
     //BNO_reset(bno);
-    delayMs(20);
+    //delayMs(100);
+    if (BNO_set_pwr_mode(bno, BNO_PWR_NORMAL) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return false;
+    }
+    delayMs(10);
+
     if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return false;
     }
     delayMs(BNO_CONFIG_TIME_DELAY+5);
 
-    if (BNO_set_pwr_mode(bno, BNO_PWR_NORMAL) != BNO_OK) {
-        _I2C_send_stop(bno->i2c);
-        return false;
-    }
-    delayMs(2);
     //BNO_on(bno);
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
@@ -61,6 +62,20 @@ bno_err_t BNO_temperature(bno_t *bno, int8_t *temp) {
     return BNO_OK;
 }
 
+bno_err_t BNO_euler_roll(bno_t *bno, int16_t *roll) {
+    bno_err_t err_bno;
+    i2c_err_t err_i2c;
+    uint8_t data[2];
+    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
+        return err_bno;
+    }
+    err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, 2, data);
+    if (err_i2c != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+    *data = (int16_t)(data[0] | (data[1] << 8)); 
+    return BNO_OK;
+}
 
 char *BNO_err_str(const bno_err_t err) {
     switch (err) {
@@ -108,7 +123,6 @@ bno_err_t BNO_set_opmode(bno_t *bno, const bno_opmode_t mode) {
         return BNO_ERR_I2C;
     }
     bno->mode = mode;
-    BNO_set_page(bno, BNO_PAGE_0);
     delayMs(BNO_ANY_TIME_DELAY+5);
     return BNO_OK;
 }

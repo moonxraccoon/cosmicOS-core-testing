@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #define BNO_ADDR                (0x29)
+#define BNO_ADDR_ALT            (0x28)
 #define BNO_DEF_CHIP_ID         (0xA0)
 
 // Page 1 
@@ -272,6 +273,7 @@ typedef enum bno_opmode {
     BNO_MODE_MO,
     BNO_MODE_GO,
     BNO_MODE_AM,
+    BNO_MODE_AG,
     BNO_MODE_MG,
     BNO_MODE_AMG,
     BNO_MODE_IMU,
@@ -335,6 +337,7 @@ bno_err_t BNO_on(bno_t *bno);
 // ======| BNO sensor data |======
 
 bno_err_t BNO_temperature(bno_t *bno, int8_t *temp);
+bno_err_t BNO_euler_roll(bno_t *bno, int16_t *roll);
 
 
 
