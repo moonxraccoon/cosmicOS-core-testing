@@ -146,16 +146,16 @@ int main(void) {
         if ( i2c_err != I2C_OK) {
             USART_printf(port, "[I2C] error: %s\n", I2C_get_err_str(i2c_err));
         }
-        //bno_err = BNO_euler_roll(&bno, &roll);
-        //if (bno_err != BNO_OK) {
-        //    USART_printf(port, "[BNO] error: %s\n", BNO_err_str(bno_err));
-        //}
+        bno_err = BNO_euler_roll(&bno, &roll);
+        if (bno_err != BNO_OK) {
+            USART_printf(port, "[BNO] error: %s\n", BNO_err_str(bno_err));
+        }
         bno_err = BNO_temperature(&bno, &temperature);
         if (bno_err != BNO_OK) {
             USART_printf(port, "[BNO] error: %s\n", BNO_err_str(bno_err));
         }
 
-        USART_printf(port, "time: %02dh%02dm%02ds -> temperature: %02d*C -> roll:%2.1f -> Read Data: %d\r", hour, min, cycle++, temperature, (f32)roll/16.0, addr_data);
+        USART_printf(port, "time: %02dh%02dm%02ds -> temperature: %02d*C -> roll:%2.1f -> Read Data: %d\r", hour, min, cycle++, temperature, (float)roll/16.0, addr_data);
         if (cycle == 60) {
             min++;
             cycle=0;
