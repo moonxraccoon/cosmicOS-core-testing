@@ -39,7 +39,7 @@ int main(void) {
         .duty = 0,
     };
 
-    USART_port port = {
+    USART port = {
         .usart = USART2,
         .baud = 115200,
         .mode = USART_RX_TX_MODE,
@@ -48,7 +48,7 @@ int main(void) {
         .parity_even_odd = 0,
         .interrupt_driven = true,
     };
-    timer_port_t tim5 = {
+    timer tim5 = {
         .timer = TIM5,
         .prescaler = (apb1_freq*2)/10000,
         .autoreload = 10000,

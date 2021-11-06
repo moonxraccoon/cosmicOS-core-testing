@@ -110,25 +110,25 @@ typedef struct _I2C_port {
 
 
 // init
-i2c_err_t I2C_init(I2C_port *port);
+i2c_err_t   I2C_init            (I2C_port *port);
 //read
-i2c_err_t I2C_read(I2C_port port, u8 slave, u8 memaddr, u8 *data);
-i2c_err_t I2C_read_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data);
+i2c_err_t   I2C_read            (I2C_port port, u8 slave, u8 memaddr, u8 *data);
+i2c_err_t   I2C_read_burst      (I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data);
 //write
-i2c_err_t I2C_write(I2C_port port, u8 slave, u8 memaddr, u8 data);
-i2c_err_t I2C_write_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data);
+i2c_err_t   I2C_write           (I2C_port port, u8 slave, u8 memaddr, u8 data);
+i2c_err_t   I2C_write_burst     (I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data);
 //errors
-i2c_err_t I2C_get_err(I2C_port port);
-char*     I2C_get_err_str(i2c_err_t err);
-i2c_err_t I2C_handle_err(I2C_port port, i2c_err_t err);
+i2c_err_t   I2C_get_err         (I2C_port port);
+string      I2C_get_err_str     (i2c_err_t err);
+i2c_err_t   I2C_handle_err      (I2C_port port, i2c_err_t err);
 
-f32 _I2C_ccr_calc(I2C_port *port);
-f32 _I2C_trise_calc(I2C_port *port);
+f32         _I2C_ccr_calc       (I2C_port *port);
+f32         _I2C_trise_calc     (I2C_port *port);
 
-i2c_err_t _I2C_send_start(I2C_port port);
-i2c_err_t _I2C_send_addr(I2C_port port, u8 addr, bool rw);
-i2c_err_t _I2C_send_data(I2C_port port, u8 data);
-i2c_err_t _I2C_send_stop(I2C_port port);
+i2c_err_t   _I2C_send_start     (I2C_port port);
+i2c_err_t   _I2C_send_addr      (I2C_port port, u8 addr, bool rw);
+i2c_err_t   _I2C_send_data      (I2C_port port, u8 data);
+i2c_err_t   _I2C_send_stop      (I2C_port port);
 
 
 

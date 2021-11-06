@@ -99,7 +99,7 @@ i2c_err_t I2C_init(I2C_port *port) {
  */
 f32 _I2C_ccr_calc(I2C_port *port) {
     f32 t_high = 0;
-    int freq = port->frequency * 1000000;
+    i32 freq = port->frequency * 1000000;
     if (port->mode == I2C_STD_MODE) {
         t_high = I2C_SM_SCL_RISE_MAX + I2C_SM_SCLH;
     } else if (port->mode == I2C_FAST_MODE) {
@@ -154,7 +154,7 @@ i2c_err_t I2C_read(I2C_port port, u8 slave, u8 memaddr, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
-    volatile int tmp;
+    volatile i32 tmp;
     u8 out;
     i2c_err_t err;
     // TODO: fix infinite loop on wrong device
@@ -230,7 +230,7 @@ i2c_err_t I2C_read_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
-    volatile int tmp;
+    volatile i32 tmp;
     i2c_err_t err;
     volatile u8 reg = memaddr;
     //while((port.i2c)->SR2 & I2C_SR2_BUSY) {
@@ -287,7 +287,7 @@ i2c_err_t I2C_read_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     //disable ACK
     (port.i2c)->CR1 |= I2C_CR1_ACK;
 
-    for (volatile int i = 0; i < n; i++) {
+    for (volatile i32 i = 0; i < n; i++) {
         if (i == n-1) {
             (port.i2c)->CR1 &= ~I2C_CR1_ACK;
             (port.i2c)->CR1 |= I2C_CR1_STOP;
@@ -326,7 +326,7 @@ i2c_err_t I2C_write_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
-    volatile int tmp;
+    volatile i32 tmp;
     i2c_err_t err;
 
 
@@ -367,7 +367,7 @@ i2c_err_t I2C_write_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     while(!((port.i2c)->SR1 & I2C_SR1_TXE));
     //send memory address
     (port.i2c)->DR = memaddr;
-    for (int i = 0; i < n; i++) { 
+    for (u32 i = 0; i < n; i++) { 
         while(!((port.i2c)->SR1 & I2C_SR1_TXE));
         (port.i2c)->DR = data[i];
     }
@@ -381,7 +381,7 @@ i2c_err_t I2C_write(I2C_port port, u8 slave, u8 memaddr, u8 data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
-    volatile int tmp;
+    volatile i32 tmp;
     i2c_err_t err;
 
 
@@ -494,7 +494,7 @@ i2c_err_t _I2C_send_stop(I2C_port port) {
     return I2C_OK;
 }
 
-char *I2C_get_err_str(i2c_err_t err) {
+string I2C_get_err_str(i2c_err_t err) {
     switch (err) {
         case I2C_ERR_AF:
             return "[I2C] acknowledge failure";
