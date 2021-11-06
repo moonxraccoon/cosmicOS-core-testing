@@ -69,8 +69,8 @@
 #define I2C_ITERREN_BIT     (0x08)
 
 
-#define I2C_READ            true
-#define I2C_WRITE           false
+#define I2C_READ            true            /*!< I2C read mode*/
+#define I2C_WRITE           false           /*!< I2C write mode*/
 
 
 typedef enum _i2c_err_h {
@@ -91,44 +91,44 @@ typedef enum _i2c_err_h {
 } i2c_err_t;
 
 typedef struct __twowire_it_handle {
-    u8 *tx_buf;
-    u8 *rx_buf;
-    u8 status;
+    u8*     tx_buf;
+    u8*     rx_buf;
+    u8      status;
 } __twowire_it_handle_t;
 
 typedef struct _I2C {
-    I2C_TypeDef *i2c;
-    u8 frequency;
-    u8 mode;
-    u8 duty;
-    u8 timeout;
-    bool _set_up;
-    bool interrupt_driven;
-    bool slave;
+    I2C_TypeDef*    i2c;
+    u8              frequency;
+    u8              mode;
+    u8              duty;
+    u8              timeout;
+    bool            _set_up;
+    bool            interrupt_driven;
+    bool            slave;
     // TODO: add other settings
 } I2C;
 
 
 // init
-i2c_err_t I2C_init(I2C *port);
+i2c_err_t   I2C_init        (I2C *port);
 //read
-i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data);
-i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data);
+i2c_err_t   I2C_read        (I2C port, u8 slave, u8 memaddr, u8 *data);
+i2c_err_t   I2C_read_burst  (I2C port, u8 slave, u8 memaddr, u8 n, u8 *data);
 //write
-i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data);
-i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data);
+i2c_err_t   I2C_write       (I2C port, u8 slave, u8 memaddr, u8 data);
+i2c_err_t   I2C_write_burst (I2C port, u8 slave, u8 memaddr, u8 n, u8 *data);
 //errors
-i2c_err_t I2C_get_err(I2C port);
-char*     I2C_get_err_str(i2c_err_t err);
-i2c_err_t I2C_handle_err(I2C port, i2c_err_t err);
+i2c_err_t   I2C_get_err     (I2C port);
+char*       I2C_get_err_str (i2c_err_t err);
+i2c_err_t   I2C_handle_err  (I2C port, i2c_err_t err);
 
-f32 _I2C_ccr_calc(I2C *port);
-f32 _I2C_trise_calc(I2C *port);
+f32         _I2C_ccr_calc   (I2C *port);
+f32         _I2C_trise_calc (I2C *port);
 
-i2c_err_t _I2C_send_start(I2C port);
-i2c_err_t _I2C_send_addr(I2C port, u8 addr, bool rw);
-i2c_err_t _I2C_send_data(I2C port, u8 data);
-i2c_err_t _I2C_send_stop(I2C port);
+i2c_err_t   _I2C_send_start (I2C port);
+i2c_err_t   _I2C_send_addr  (I2C port, u8 addr, bool rw);
+i2c_err_t   _I2C_send_data  (I2C port, u8 data);
+i2c_err_t   _I2C_send_stop  (I2C port);
 
 
 

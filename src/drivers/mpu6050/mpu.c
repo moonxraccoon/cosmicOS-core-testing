@@ -229,7 +229,7 @@ mpu_err_t MPU_calibrate(mpu_t *mpu) {
     return MPU_OK;
 }
 
-float MPU_get_gyro_range(mpu_t mpu) {
+f32 MPU_get_gyro_range(mpu_t mpu) {
     switch (mpu.gyro_range) {
         case GYRO_500_DEG_S:
             return 65.5;
@@ -257,7 +257,7 @@ i32  MPU_get_accel_range(mpu_t mpu) {
 }
 
 
-mpu_err_t MPU_gyro_x(mpu_t mpu, float *data) {
+mpu_err_t MPU_gyro_x(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_gyro_x_raw(mpu, &raw); 
@@ -271,7 +271,7 @@ mpu_err_t MPU_gyro_x(mpu_t mpu, float *data) {
     return MPU_OK;
 }
 
-mpu_err_t MPU_gyro_y(mpu_t mpu, float *data) {
+mpu_err_t MPU_gyro_y(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_gyro_y_raw(mpu, &raw); 
@@ -285,7 +285,7 @@ mpu_err_t MPU_gyro_y(mpu_t mpu, float *data) {
     return MPU_OK;
 }
 
-mpu_err_t MPU_gyro_z(mpu_t mpu, float *data) {
+mpu_err_t MPU_gyro_z(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_gyro_z_raw(mpu, &raw); 
@@ -299,7 +299,7 @@ mpu_err_t MPU_gyro_z(mpu_t mpu, float *data) {
     return MPU_OK;
 }
 
-mpu_err_t MPU_gyro(mpu_t mpu, float *data, i32 n) {
+mpu_err_t MPU_gyro(mpu_t mpu, f32 *data, i32 n) {
     if (n != 3) {
         return MPU_ERR_ARR_SIZE;
     }
@@ -319,7 +319,7 @@ mpu_err_t MPU_gyro(mpu_t mpu, float *data, i32 n) {
     return MPU_OK;
 }
 
-mpu_err_t MPU_accel_x(mpu_t mpu, float *data) {
+mpu_err_t MPU_accel_x(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_accel_x_raw(mpu, &raw); 
@@ -329,11 +329,11 @@ mpu_err_t MPU_accel_x(mpu_t mpu, float *data) {
     if (mpu._calibrated) {
         raw -= mpu_accel_calib[0];
     }
-    *data = raw / (float) MPU_get_accel_range(mpu);
+    *data = raw / (f32) MPU_get_accel_range(mpu);
     return MPU_OK;
 }
 
-mpu_err_t MPU_accel_y(mpu_t mpu, float *data) {
+mpu_err_t MPU_accel_y(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_accel_y_raw(mpu, &raw); 
@@ -343,11 +343,11 @@ mpu_err_t MPU_accel_y(mpu_t mpu, float *data) {
     if (mpu._calibrated) {
         raw -= mpu_accel_calib[0];
     }
-    *data = raw / (float) MPU_get_accel_range(mpu);
+    *data = raw / (f32) MPU_get_accel_range(mpu);
     return MPU_OK;
 }
 
-mpu_err_t MPU_accel_z(mpu_t mpu, float *data) {
+mpu_err_t MPU_accel_z(mpu_t mpu, f32 *data) {
     i32 raw;
     mpu_err_t err;
     err = MPU_accel_z_raw(mpu, &raw); 
@@ -357,11 +357,11 @@ mpu_err_t MPU_accel_z(mpu_t mpu, float *data) {
     if (mpu._calibrated) {
         raw -= mpu_accel_calib[0];
     }
-    *data = raw / (float) MPU_get_accel_range(mpu);
+    *data = raw / (f32) MPU_get_accel_range(mpu);
     return MPU_OK;
 }
 
-mpu_err_t MPU_accel(mpu_t mpu, float *data, i32 n) {
+mpu_err_t MPU_accel(mpu_t mpu, f32 *data, i32 n) {
     if (n != 3) {
         return MPU_ERR_ARR_SIZE;
     }

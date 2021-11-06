@@ -145,7 +145,7 @@ mpu_err_t MPU_set_gyro_range(mpu_t *mpu);
 mpu_err_t MPU_set_accel_range(mpu_t *mpu);
 mpu_err_t MPU_set_offsets(mpu_t *mpu, i32 gx, i32 gy, i32 gz, i32 ax, i32 ay, i32 az);
 mpu_err_t MPU_calibrate(mpu_t *mpu);
-float     MPU_get_gyro_range(mpu_t mpu);
+f32     MPU_get_gyro_range(mpu_t mpu);
 i32  MPU_get_accel_range(mpu_t mpu);
 
 // RAW Gyroscope measurements
@@ -160,15 +160,15 @@ mpu_err_t MPU_accel_y_raw(mpu_t mpu, i32 *data);
 mpu_err_t MPU_accel_z_raw(mpu_t mpu, i32 *data);
 mpu_err_t MPU_accel_raw(mpu_t mpu, i32 *data);
 
-mpu_err_t MPU_gyro_x(mpu_t mpu, float *data);
-mpu_err_t MPU_gyro_y(mpu_t mpu, float *data);
-mpu_err_t MPU_gyro_z(mpu_t mpu, float *data);
-mpu_err_t MPU_gyro(mpu_t mpu, float *data, i32 n);
+mpu_err_t MPU_gyro_x(mpu_t mpu, f32 *data);
+mpu_err_t MPU_gyro_y(mpu_t mpu, f32 *data);
+mpu_err_t MPU_gyro_z(mpu_t mpu, f32 *data);
+mpu_err_t MPU_gyro(mpu_t mpu, f32 *data, i32 n);
 
-mpu_err_t MPU_accel_x(mpu_t mpu, float *data);
-mpu_err_t MPU_accel_y(mpu_t mpu, float *data);
-mpu_err_t MPU_accel_z(mpu_t mpu, float *data);
-mpu_err_t MPU_accel(mpu_t mpu, float *data, i32 n);
+mpu_err_t MPU_accel_x(mpu_t mpu, f32 *data);
+mpu_err_t MPU_accel_y(mpu_t mpu, f32 *data);
+mpu_err_t MPU_accel_z(mpu_t mpu, f32 *data);
+mpu_err_t MPU_accel(mpu_t mpu, f32 *data, i32 n);
 // 
 char *MPU_err_str(mpu_err_t err);
 
