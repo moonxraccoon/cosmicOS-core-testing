@@ -11,6 +11,7 @@
 #include "stm32/stm32.h"
 #include "stm32/f4/timer/timer.h"
 #include "bno/bno.h"
+#include "cosmic.h"
 //#include "stm32/f4/exti/exti.h"
 
 #define DEBUG_LED   PB8
@@ -64,9 +65,9 @@ int main(void) {
     I2C_init(&i2c1);
     i2c_err_t i2c_err;
     bno_err_t bno_err;
-    uint8_t i2c_data[2]; 
+    u8 i2c_data[2]; 
     bno.i2c = i2c1;
-    bno.mode = BNO_MODE_AG;
+    bno.mode = BNO_MODE_IMU;
     //i2c_err = I2C_write(i2c1, MPU_ADDR, 0x6B, 0x00);
     USART_printf(port, "%s\n\n", I2C_get_err_str(i2c_err));
     delayMs(1000);
@@ -77,6 +78,7 @@ int main(void) {
     }
     delayMs(1000);
     
+    //BNO_set_temp_src(&bno, BNO_TEMP_SRC_ACC);
     bno.err = BNO_set_unit(
             &bno,
             BNO_TEMP_UNIT_C,
@@ -102,7 +104,7 @@ int main(void) {
     //const clock_t *test = &RCC_25MHZ_TO_84MHZ;
     char usart_test[512];
     unsigned long int cycle = 0; 
-    uint8_t bit_test = 0;
+    u8 bit_test = 0;
     usart_err_t usart_err;
     //USART_printf(port, "APB1 clock: %d\n", apb1_freq);
     //uint32_t last_time = millis();
@@ -115,18 +117,32 @@ int main(void) {
     }
     USART_printf(port, "\n");
 
-    uint8_t temperature;
-    uint32_t min = 0, hour = 0;
+    i8 temperature;
+    u8 addr_data;
+    u32 min = 0, hour = 0;
     USART_printf(port, "[System] Starting main loop...\n\n");
     delayMs(1000);
     I2C_write(i2c1, BNO_ADDR, BNO_TEMP_SOURCE, 0x00);
-    int16_t roll;
+    i16 roll;
+    //BNO_set_opmode(&bno, BNO_MODE_CONFIG);
+    //BNO_set_page(&bno, 0x00);
+    //i2c_err = I2C_write(i2c1, BNO_ADDR, BNO_UNIT_SEL, (1 << 0x04));
+    //BNO_set_opmode(&bno, bno.mode);
+    if (i2c_err != I2C_OK) {
+        USART_printf(port, "[-] I2C write failed...\n");
+    }
     while (1) {
         //bno.err = BNO_temperature(&bno, &temperature);
+        //
         //if (bno.err != BNO_OK) {
         //    USART_printf(port, "[BNO] error reading temperature\n");
         //}
-        i2c_err = I2C_read(i2c1, BNO_ADDR, BNO_PWR_MODE, &temperature);
+        //I2C_write(i2c1, BNO_ADDR, BNO_OPR_MODE, (1<<3));
+        //
+
+
+
+        i2c_err = I2C_read(i2c1, BNO_ADDR, BNO_OPR_MODE, &addr_data);
         if ( i2c_err != I2C_OK) {
             USART_printf(port, "[I2C] error: %s\n", I2C_get_err_str(i2c_err));
         }
@@ -134,7 +150,12 @@ int main(void) {
         if (bno_err != BNO_OK) {
             USART_printf(port, "[BNO] error: %s\n", BNO_err_str(bno_err));
         }
-        USART_printf(port, "time: %02dh%02dm%02ds -> temperature: %02d*C -> roll:%2d\r", hour, min, cycle++, temperature, roll);
+        bno_err = BNO_temperature(&bno, &temperature);
+        if (bno_err != BNO_OK) {
+            USART_printf(port, "[BNO] error: %s\n", BNO_err_str(bno_err));
+        }
+
+        USART_printf(port, "time: %02dh%02dm%02ds -> temperature: %02d*C -> roll:%2.1f -> Read Data: %d\r", hour, min, cycle++, temperature, (float)roll/16.0, addr_data);
         if (cycle == 60) {
             min++;
             cycle=0;

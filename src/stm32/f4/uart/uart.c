@@ -91,7 +91,7 @@ usart_err_t USART_init(USART_port *port) {
  *
  * @return Error code (USART_OK on success, USART_IT_BUF_FULL on interrupt buffer overflow)
  */
-usart_err_t USART_write(USART_port port, int ch) {
+usart_err_t USART_write(USART_port port, i32 ch) {
     if (!port.interrupt_driven) {
         while(!((port.usart)->SR & USART_SR_TXE));
         (port.usart)->DR = (ch & 0xFF);
@@ -119,7 +119,7 @@ usart_err_t USART_write(USART_port port, int ch) {
  * @param periph_clk clock speed of given USART
  * @param baud baud rate
  */
-uint16_t USART_compute_div(uint32_t periph_clk, uint32_t baud) {
+u16 USART_compute_div(u32 periph_clk, u32 baud) {
     return (periph_clk + (baud/2U)) / baud; 
 }
 
@@ -143,7 +143,7 @@ int16_t USART_read(USART_port port) {
 }
 
 
-uint8_t USART_getc(USART_port port) {
+u8 USART_getc(USART_port port) {
     volatile int ch;
     do {
         ch = USART_read(port);
@@ -168,7 +168,7 @@ uint8_t USART_getc(USART_port port) {
  *
  * @return usart_err_t `USART_OK` on success
  */
-usart_err_t USART_scan(USART_port port, char *buf, int len) {
+usart_err_t USART_scan(USART_port port, char *buf, i32 len) {
     volatile int buf_i = 0;
     int c = USART_read(port);
     while (c != -1) {

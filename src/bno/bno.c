@@ -48,6 +48,10 @@ bool BNO_init(bno_t *bno) {
 
 
 bno_err_t BNO_temperature(bno_t *bno, int8_t *temp) {
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     bno_err_t err_bno;
     i2c_err_t err_i2c; 
     uint8_t data;
@@ -58,17 +62,26 @@ bno_err_t BNO_temperature(bno_t *bno, int8_t *temp) {
     if (err_i2c != I2C_OK) {
         return BNO_ERR_I2C;
     }
-    *temp = data;
+    *temp = (bno->_temp_unit) ? data*2 : data;
     return BNO_OK;
 }
 
 bno_err_t BNO_euler_roll(bno_t *bno, int16_t *roll) {
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     bno_err_t err_bno;
     i2c_err_t err_i2c;
     uint8_t data[2];
     if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
         return err_bno;
     }
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, &data[0]);
+    //if (err_i2c != I2C_OK) {
+    //    return BNO_ERR_I2C;
+    //}
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_MSB, &data[1]);
     err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, 2, data);
     if (err_i2c != I2C_OK) {
         return BNO_ERR_I2C;
@@ -90,6 +103,13 @@ char *BNO_err_str(const bno_err_t err) {
 
 
 bno_err_t BNO_set_pwr_mode(bno_t *bno, const bno_pwr_t pwr) {
+
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+
+
     if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -98,6 +118,14 @@ bno_err_t BNO_set_pwr_mode(bno_t *bno, const bno_pwr_t pwr) {
     }
     bno->_pwr_mode = pwr;
     BNO_set_page(bno, BNO_PAGE_0);
+
+    // Set Operation mode to selected mode
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+
+
     delayMs(2);
     return BNO_OK;
 }
@@ -122,7 +150,6 @@ bno_err_t BNO_set_opmode(bno_t *bno, const bno_opmode_t mode) {
     if (I2C_write(bno->i2c, BNO_ADDR, BNO_OPR_MODE, mode) != I2C_OK) {
         return BNO_ERR_I2C;
     }
-    bno->mode = mode;
     delayMs(BNO_ANY_TIME_DELAY+5);
     return BNO_OK;
 }
@@ -131,6 +158,10 @@ bno_err_t BNO_set_acc_conf(bno_t *bno,
                            const bno_acc_range_t range,
                            const bno_acc_band_t bandwidth,
                            const bno_acc_mode_t mode) {
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     if (BNO_set_page(bno, BNO_PAGE_1) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -141,6 +172,12 @@ bno_err_t BNO_set_acc_conf(bno_t *bno,
     bno->_acc_bandwidth = bandwidth;
     bno->_acc_range = range;
     BNO_set_page(bno, BNO_PAGE_0);
+    
+    // Set Operation mode to selected mode
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     delayMs(2);
     return BNO_OK;
 }
@@ -149,6 +186,10 @@ bno_err_t BNO_set_mag_conf(bno_t *bno,
                            const bno_mag_rate_t out_rate,
                            const bno_mag_pwr_t pwr_mode,
                            const bno_mag_mode_t mode) {
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     if (BNO_set_page(bno, BNO_PAGE_1) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -158,7 +199,13 @@ bno_err_t BNO_set_mag_conf(bno_t *bno,
     bno->_mag_mode = mode;
     bno->_mag_out_rate = out_rate;
     bno->_mag_pwr_mode = pwr_mode;
+
+    // Set Operation mode to selected mode
     BNO_set_page(bno, BNO_PAGE_0);
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     delayMs(2);
     return BNO_OK;
 }
@@ -167,6 +214,10 @@ bno_err_t BNO_set_gyr_conf(bno_t *bno,
                            const bno_gyr_range_t range,
                            const bno_gyr_band_t bandwidth,
                            const bno_gyr_mode_t mode) {
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     if (BNO_set_page(bno, BNO_PAGE_1) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -180,6 +231,12 @@ bno_err_t BNO_set_gyr_conf(bno_t *bno,
     bno->_gyr_bandwidth = bandwidth;
     bno->_gyr_range = range;
     BNO_set_page(bno, BNO_PAGE_0);
+    
+    // Set Operation mode to selected mode
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     delayMs(2);
     return BNO_OK;
 }
@@ -200,6 +257,10 @@ bno_err_t BNO_set_unit(bno_t *bno,
                        const bno_gyr_unitsel_t g_unit,
                        const bno_acc_unitsel_t a_unit,
                        const bno_eul_unitsel_t e_unit) {
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -210,7 +271,33 @@ bno_err_t BNO_set_unit(bno_t *bno,
     bno->_acc_unit = a_unit;
     bno->_eul_unit = e_unit;
     bno->_temp_unit = t_unit;
-    BNO_set_page(bno, BNO_PAGE_0);
+
+    // Set Operation mode to selected mode
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+    delayMs(2);
+    return BNO_OK;
+}
+
+bno_err_t BNO_set_temp_src(bno_t *bno, const enum bno_temp_src src) {
+    if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+    if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
+        return BNO_ERR_I2C;
+    }
+    if (I2C_write(bno->i2c, BNO_ADDR, BNO_TEMP_SOURCE, src) != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+
+    // Set Operation mode to selected mode
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
     delayMs(2);
     return BNO_OK;
 }
