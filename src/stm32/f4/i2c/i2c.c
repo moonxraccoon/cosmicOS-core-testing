@@ -14,7 +14,7 @@
  *
  * @return i2c_err_t error code
  */
-i2c_err_t I2C_init(I2C_port *port) {
+i2c_err_t I2C_init(I2C *port) {
     port->_set_up = false;
     if (port->i2c == I2C1) {
         // enabling GPIO 6,7, selecting alternate function, setting speed
@@ -97,7 +97,7 @@ i2c_err_t I2C_init(I2C_port *port) {
  * @param port I2C init struct
  * @return ccr register value
  */
-f32 _I2C_ccr_calc(I2C_port *port) {
+f32 _I2C_ccr_calc(I2C *port) {
     f32 t_high = 0;
     i32 freq = port->frequency * 1000000;
     if (port->mode == I2C_STD_MODE) {
@@ -126,7 +126,7 @@ f32 _I2C_ccr_calc(I2C_port *port) {
  * @param port I2C init struct
  * @return ccr register value
  */
-f32 _I2C_trise_calc(I2C_port *port) {
+f32 _I2C_trise_calc(I2C *port) {
     f32 freq = 1.0 / (port->frequency * 1000000.0);
     if (port->mode == I2C_STD_MODE) {
         return (I2C_SM_SCL_RISE_MAX / freq) + 1.0;
@@ -149,7 +149,7 @@ f32 _I2C_trise_calc(I2C_port *port) {
  *
  * @return byte read from the I2C device (u8)
  */
-i2c_err_t I2C_read(I2C_port port, u8 slave, u8 memaddr, u8 *data) {
+i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
 
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
@@ -226,7 +226,7 @@ i2c_err_t I2C_read(I2C_port port, u8 slave, u8 memaddr, u8 *data) {
  *
  * @return error-code - error code
  */
-i2c_err_t I2C_read_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
+i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -322,7 +322,7 @@ i2c_err_t I2C_read_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
 
 
 
-i2c_err_t I2C_write_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
+i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -377,7 +377,7 @@ i2c_err_t I2C_write_burst(I2C_port port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     return I2C_OK;
 }
 
-i2c_err_t I2C_write(I2C_port port, u8 slave, u8 memaddr, u8 data) {
+i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -431,7 +431,7 @@ i2c_err_t I2C_write(I2C_port port, u8 slave, u8 memaddr, u8 data) {
     return I2C_OK;
 }
 
-i2c_err_t I2C_get_err(I2C_port port) {
+i2c_err_t I2C_get_err(I2C port) {
     if (port.i2c->SR1 & I2C_BERR) {
         return I2C_ERR_BUS;
     } else if (port.i2c->SR1 & I2C_ARLOERR) {
@@ -454,7 +454,7 @@ i2c_err_t I2C_get_err(I2C_port port) {
  * @param port port to generate start
  * @return err `I2C_OK` on success, otherwise `I2C_ERR_x`
  */
-i2c_err_t _I2C_send_start(I2C_port port) {
+i2c_err_t _I2C_send_start(I2C port) {
     // return `I2C_ERR_NOT_CONFIGURED` if port is not set up
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
@@ -473,7 +473,7 @@ i2c_err_t _I2C_send_start(I2C_port port) {
 }
 
 
-i2c_err_t _I2C_send_addr(I2C_port port, u8 addr, bool rw) {
+i2c_err_t _I2C_send_addr(I2C port, u8 addr, bool rw) {
     _I2C_send_data(port, (rw)?((addr<<1)|1):(addr<<1)); 
     i2c_err_t err = I2C_OK; 
     while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
@@ -484,12 +484,12 @@ i2c_err_t _I2C_send_addr(I2C_port port, u8 addr, bool rw) {
     return err;
 }
 
-i2c_err_t _I2C_send_data(I2C_port port, u8 data) {
+i2c_err_t _I2C_send_data(I2C port, u8 data) {
     port.i2c->DR = data;
     return I2C_OK;
 }
 
-i2c_err_t _I2C_send_stop(I2C_port port) { 
+i2c_err_t _I2C_send_stop(I2C port) { 
     (port.i2c)->CR1 |= I2C_CR1_STOP; 
     return I2C_OK;
 }
@@ -526,7 +526,7 @@ string I2C_get_err_str(i2c_err_t err) {
 }
 
 
-i2c_err_t I2C_handle_err(I2C_port port, i2c_err_t err) {
+i2c_err_t I2C_handle_err(I2C port, i2c_err_t err) {
 
 
     return I2C_OK;

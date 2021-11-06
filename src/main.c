@@ -19,7 +19,7 @@
 
 
 
-bno_t bno;
+BNO bno;
 
 void toggle_test_led(void) {
     GPIO_toggle(DEBUG_LED);        
@@ -32,7 +32,7 @@ int main(void) {
     RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
     //cosmicOS_init();
     
-    I2C_port i2c1 = {
+    I2C i2c1 = {
         .i2c = I2C1,
         .frequency = 16,
         .mode = I2C_STD_MODE,

@@ -4,8 +4,8 @@
 #include "../stm32/f4/gpio/gpio.h"
 
 
-bool BNO_init(bno_t *bno) {
-    uint8_t id;
+bool BNO_init(BNO *bno) {
+    u8 id;
     i2c_err_t err;
     bno_err_t err_bno;
     err = I2C_read(bno->i2c, BNO_ADDR, BNO_CHIP_ID, &id);
@@ -47,14 +47,14 @@ bool BNO_init(bno_t *bno) {
 }
 
 
-bno_err_t BNO_temperature(bno_t *bno, int8_t *temp) {
+bno_err_t BNO_temperature(BNO *bno, i8 *temp) {
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;
     }
     bno_err_t err_bno;
     i2c_err_t err_i2c; 
-    uint8_t data;
+    u8 data;
     if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
         return err_bno;
     }
@@ -66,14 +66,14 @@ bno_err_t BNO_temperature(bno_t *bno, int8_t *temp) {
     return BNO_OK;
 }
 
-bno_err_t BNO_euler_roll(bno_t *bno, int16_t *roll) {
+bno_err_t BNO_euler_roll(BNO *bno, i16 *roll) {
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;
     }
     bno_err_t err_bno;
     i2c_err_t err_i2c;
-    uint8_t data[2];
+    u8 data[2];
     if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
         return err_bno;
     }
@@ -86,7 +86,7 @@ bno_err_t BNO_euler_roll(bno_t *bno, int16_t *roll) {
     if (err_i2c != I2C_OK) {
         return BNO_ERR_I2C;
     }
-    *data = (int16_t)(data[0] | (data[1] << 8)); 
+    *data = (i16)(data[0] | (data[1] << 8)); 
     return BNO_OK;
 }
 
@@ -102,7 +102,7 @@ char *BNO_err_str(const bno_err_t err) {
 }
 
 
-bno_err_t BNO_set_pwr_mode(bno_t *bno, const bno_pwr_t pwr) {
+bno_err_t BNO_set_pwr_mode(BNO *bno, const bno_pwr_t pwr) {
 
     if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
@@ -130,7 +130,7 @@ bno_err_t BNO_set_pwr_mode(bno_t *bno, const bno_pwr_t pwr) {
     return BNO_OK;
 }
 
-bno_err_t BNO_set_page(bno_t *bno, const bno_page_t page) {
+bno_err_t BNO_set_page(BNO *bno, const bno_page_t page) {
     if (page > 0x01) {
         return BNO_ERR_PAGE_TOO_HIGH;
     }
@@ -143,7 +143,7 @@ bno_err_t BNO_set_page(bno_t *bno, const bno_page_t page) {
     return BNO_OK;
 }
 
-bno_err_t BNO_set_opmode(bno_t *bno, const bno_opmode_t mode) {
+bno_err_t BNO_set_opmode(BNO *bno, const bno_opmode_t mode) {
     if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
         return BNO_ERR_I2C;
     }
@@ -154,7 +154,7 @@ bno_err_t BNO_set_opmode(bno_t *bno, const bno_opmode_t mode) {
     return BNO_OK;
 }
 
-bno_err_t BNO_set_acc_conf(bno_t *bno,
+bno_err_t BNO_set_acc_conf(BNO *bno,
                            const bno_acc_range_t range,
                            const bno_acc_band_t bandwidth,
                            const bno_acc_mode_t mode) {
@@ -182,7 +182,7 @@ bno_err_t BNO_set_acc_conf(bno_t *bno,
     return BNO_OK;
 }
 
-bno_err_t BNO_set_mag_conf(bno_t *bno,
+bno_err_t BNO_set_mag_conf(BNO *bno,
                            const bno_mag_rate_t out_rate,
                            const bno_mag_pwr_t pwr_mode,
                            const bno_mag_mode_t mode) {
@@ -210,7 +210,7 @@ bno_err_t BNO_set_mag_conf(bno_t *bno,
     return BNO_OK;
 }
 
-bno_err_t BNO_set_gyr_conf(bno_t *bno,
+bno_err_t BNO_set_gyr_conf(BNO *bno,
                            const bno_gyr_range_t range,
                            const bno_gyr_band_t bandwidth,
                            const bno_gyr_mode_t mode) {
@@ -252,7 +252,7 @@ bno_err_t BNO_set_gyr_conf(bno_t *bno,
  *
  * @return bno_err_t error code
  */
-bno_err_t BNO_set_unit(bno_t *bno,
+bno_err_t BNO_set_unit(BNO *bno,
                        const bno_temp_unitsel_t t_unit,
                        const bno_gyr_unitsel_t g_unit,
                        const bno_acc_unitsel_t a_unit,
@@ -281,7 +281,7 @@ bno_err_t BNO_set_unit(bno_t *bno,
     return BNO_OK;
 }
 
-bno_err_t BNO_set_temp_src(bno_t *bno, const enum bno_temp_src src) {
+bno_err_t BNO_set_temp_src(BNO *bno, const enum bno_temp_src src) {
     if (BNO_set_opmode(bno, BNO_MODE_CONFIG) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;
@@ -302,14 +302,14 @@ bno_err_t BNO_set_temp_src(bno_t *bno, const enum bno_temp_src src) {
     return BNO_OK;
 }
 
-bno_err_t BNO_reset(bno_t *bno) {
+bno_err_t BNO_reset(BNO *bno) {
     if (I2C_write(bno->i2c, BNO_ADDR, BNO_SYS_TRIGGER, (1<<5)) != I2C_OK) {
         return BNO_ERR_I2C;
     }
     return BNO_OK;
 }
 
-bno_err_t BNO_on(bno_t *bno) {
+bno_err_t BNO_on(BNO *bno) {
     if (I2C_write(bno->i2c, BNO_ADDR, BNO_SYS_TRIGGER, (0<<5)) != I2C_OK) {
         return BNO_ERR_I2C;
     }
