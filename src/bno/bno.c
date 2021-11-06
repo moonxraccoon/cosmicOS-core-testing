@@ -48,7 +48,7 @@ bool BNO_init(BNO *bno) {
 }
 
 
-bno_err_t BNO_temperature(BNO *bno, int8_t *temp) {
+bno_err_t BNO_temperature(BNO *bno, i8 *temp) {
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;

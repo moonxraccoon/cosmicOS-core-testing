@@ -2,6 +2,7 @@
 #define _COSMIC_TIMER_H
 #include "stm32f4xx.h"
 #include <stdbool.h>
+#include "../../../cosmic.h"
 
 #define NULL (void*)0
 
@@ -36,8 +37,8 @@ typedef enum {
  */
 typedef struct _Timer{
     TIM_TypeDef *timer;         /*! `TIMx` structure which _Timer to use  */
-    uint32_t prescaler;         /*! Prescaler value - normaly stuff like: `AHB_FREQ/1000` for 1ms*/
-    uint32_t autoreload;        /*! autoreload value - value the _Timer will count up to */
+    u32 prescaler;         /*! Prescaler value - normaly stuff like: `AHB_FREQ/1000` for 1ms*/
+    u32 autoreload;        /*! autoreload value - value the _Timer will count up to */
     tim_dir_t dir;              /*! counting direction (`RCC_DIR_UP`, `RCC_DIR_DOWN`)*/
     bool interrup_en;           /*! enable interrupt on update event */
     void (*func)(void);         /*! function to execute on interrupt */

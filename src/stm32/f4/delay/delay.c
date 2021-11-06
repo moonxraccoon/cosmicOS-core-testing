@@ -2,10 +2,11 @@
 #include <stm32f4xx.h>
 #include "../rcc/rcc.h"
 #include "../timer/timer.h"
+#include "../../../cosmic.h"
 
-volatile uint32_t syscount = 0;
+volatile u32 syscount = 0;
 
-void delayMs(uint32_t ms) {
+void delayMs(u32 ms) {
     SysTick->LOAD = (SYSTEM_CLOCK/1000)-1;
     SysTick->VAL = 0x00;
 
@@ -18,7 +19,7 @@ void delayMs(uint32_t ms) {
 }
 
 
-void delayUs(uint32_t us) {
+void delayUs(u32 us) {
     SysTick->LOAD = (SYSTEM_CLOCK/1000)/1000;
     SysTick->VAL = 0x00;
 
