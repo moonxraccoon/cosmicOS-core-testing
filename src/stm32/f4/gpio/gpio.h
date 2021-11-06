@@ -117,29 +117,22 @@ typedef struct _gpio_init_t {
     u8 push_pull_open_drain;
 } gpio_init_t;
 
-gpio_err_t      GPIO_init               (gpio_init_t *gpio);
-gpio_err_t      GPIO_enable             (const gpio_pin_t, gpio_mode_t mode);
+gpio_err_t GPIO_init(gpio_init_t *gpio);
+gpio_err_t GPIO_enable(const gpio_pin_t, gpio_mode_t mode);
+gpio_err_t GPIO_settings(const gpio_pin_t, const u8 speed, const u8 pull_up_down, const u8 push_pull_open_drain);
+gpio_err_t GPIO_set_speed(const gpio_pin_t, const u8 speed);
+gpio_err_t GPIO_set_pull_up_down(const gpio_pin_t pin, const u8 pull_up_down);
 
-gpio_err_t      GPIO_settings           (const gpio_pin_t, 
-                                         const u8 speed, 
-                                         const u8 pull_up_down, 
-                                         const u8 push_pull_open_drain);
+gpio_err_t GPIO_toggle(const gpio_pin_t pin);
+gpio_err_t GPIO_write(const gpio_pin_t pin, const u8 on_off);
 
-gpio_err_t      GPIO_set_speed          (const gpio_pin_t, const u8 speed);
-gpio_err_t      GPIO_set_pull_up_down   (const gpio_pin_t pin, const u8 pull_up_down);
+u8 GPIO_read_digital(const gpio_pin_t pin);
+u16 GPIO_read_analog(const gpio_pin_t pin);
+gpio_err_t GPIO_select_alternate(const gpio_pin_t pin, const u8 af);
 
-gpio_err_t      GPIO_toggle             (const gpio_pin_t pin);
-gpio_err_t      GPIO_write              (const gpio_pin_t pin, const u8 on_off);
+gpio_err_t GPIO_lock(const gpio_pin_t pin);
 
-u8              GPIO_read_digital       (const gpio_pin_t pin);
-u16             GPIO_read_analog        (const gpio_pin_t pin);
-gpio_err_t      GPIO_select_alternate   (const gpio_pin_t pin, const u8 af);
-
-gpio_err_t      GPIO_lock               (const gpio_pin_t pin);
-
-// ============| GPIO setter |============
-
-static GPIO_TypeDef*   _GPIO_fetch_port        (const gpio_pin_t pin);
+GPIO_TypeDef *_GPIO_fetch_port(const gpio_pin_t pin);
 
 
 

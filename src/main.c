@@ -19,7 +19,7 @@
 
 
 
-BNO bno;
+bno_t bno;
 
 void toggle_test_led(void) {
     GPIO_toggle(DEBUG_LED);        
@@ -31,15 +31,15 @@ int main(void) {
 
     RCC_system_clock_config(rcc_hse_25_mhz_to_96_mhz);   
     //cosmicOS_init();
-        
-    I2C i2c1 = {
+    
+    I2C_port i2c1 = {
         .i2c = I2C1,
         .frequency = 16,
         .mode = I2C_STD_MODE,
         .duty = 0,
     };
 
-    USART port = {
+    USART_port port = {
         .usart = USART2,
         .baud = 115200,
         .mode = USART_RX_TX_MODE,
@@ -48,7 +48,7 @@ int main(void) {
         .parity_even_odd = 0,
         .interrupt_driven = true,
     };
-    timer tim5 = {
+    timer_port_t tim5 = {
         .timer = TIM5,
         .prescaler = (apb1_freq*2)/10000,
         .autoreload = 10000,
@@ -57,7 +57,7 @@ int main(void) {
     };
     GPIO_enable(DEBUG_LED, GPIO_OUTPUT);
     GPIO_enable(PA8, GPIO_OUTPUT);
-        
+    
     USART_init(&port);   
     //USART_init(&gps);
     USART_printf(port, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -102,8 +102,8 @@ int main(void) {
     
     
     //const clock_t *test = &RCC_25MHZ_TO_84MHZ;
-    string usart_test = new_string(512);
-    u64 cycle = 0; 
+    char usart_test[512];
+    unsigned long int cycle = 0; 
     u8 bit_test = 0;
     usart_err_t usart_err;
     //USART_printf(port, "APB1 clock: %d\n", apb1_freq);

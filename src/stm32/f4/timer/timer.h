@@ -34,14 +34,14 @@ typedef enum {
  * Use in combination with 
  * all the other functions
  */
-typedef struct _Timer{
-    TIM_TypeDef *timer;         /*! `TIMx` structure which _Timer to use  */
+typedef struct timer_port {
+    TIM_TypeDef *timer;         /*! `TIMx` structure which timer to use  */
     uint32_t prescaler;         /*! Prescaler value - normaly stuff like: `AHB_FREQ/1000` for 1ms*/
-    uint32_t autoreload;        /*! autoreload value - value the _Timer will count up to */
+    uint32_t autoreload;        /*! autoreload value - value the timer will count up to */
     tim_dir_t dir;              /*! counting direction (`RCC_DIR_UP`, `RCC_DIR_DOWN`)*/
     bool interrup_en;           /*! enable interrupt on update event */
     void (*func)(void);         /*! function to execute on interrupt */
-} timer;
+} timer_port_t;
 
 typedef enum timer_err {
     TIM_OK,
@@ -53,20 +53,20 @@ typedef enum timer_err {
 
 
 
-tim_err_t TIM_init(const struct _Timer *port);
+tim_err_t TIM_init(const struct timer_port *port);
 
-tim_err_t TIM_set_prescaler(const struct _Timer *port);
-tim_err_t TIM_set_autoreload(const struct _Timer *port);
-tim_err_t TIM_set_dir(const struct _Timer *port);
+tim_err_t TIM_set_prescaler(const struct timer_port *port);
+tim_err_t TIM_set_autoreload(const struct timer_port *port);
+tim_err_t TIM_set_dir(const struct timer_port *port);
 
-tim_err_t TIM_reset_count(const struct _Timer *port);
+tim_err_t TIM_reset_count(const struct timer_port *port);
 
-bool TIM_is_TIM2_5(const struct _Timer *port);
-void TIM_rcc_enable(const struct _Timer *port);
-void TIM_rcc_disable(const struct _Timer *port);
+bool TIM_is_TIM2_5(const struct timer_port *port);
+void TIM_rcc_enable(const struct timer_port *port);
+void TIM_rcc_disable(const struct timer_port *port);
 
 char *TIM_err_str(const tim_err_t err);
 
-void _TIM_NVIC_enable(const struct _Timer *port);
+void _TIM_NVIC_enable(const struct timer_port *port);
 
 #endif
