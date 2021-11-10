@@ -2,6 +2,7 @@
 #include "../stm32/f4/i2c/i2c.h"
 #include "../stm32/f4/delay/delay.h"
 #include "../stm32/f4/gpio/gpio.h"
+#include "../cosmic.h"
 
 
 bool BNO_init(BNO *bno) {
@@ -47,49 +48,6 @@ bool BNO_init(BNO *bno) {
 }
 
 
-bno_err_t BNO_temperature(BNO *bno, i8 *temp) {
-    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
-        _I2C_send_stop(bno->i2c);
-        return BNO_ERR_I2C;
-    }
-    bno_err_t err_bno;
-    i2c_err_t err_i2c; 
-    u8 data;
-    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
-        return err_bno;
-    }
-    err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_TEMP, &data);
-    if (err_i2c != I2C_OK) {
-        return BNO_ERR_I2C;
-    }
-    *temp = (bno->_temp_unit) ? data*2 : data;
-    return BNO_OK;
-}
-
-bno_err_t BNO_euler_roll(BNO *bno, i16 *roll) {
-    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
-        _I2C_send_stop(bno->i2c);
-        return BNO_ERR_I2C;
-    }
-    bno_err_t err_bno;
-    i2c_err_t err_i2c;
-    u8 data[2];
-    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
-        return err_bno;
-    }
-    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, &data[0]);
-    //if (err_i2c != I2C_OK) {
-    //    return BNO_ERR_I2C;
-    //}
-    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_MSB, &data[1]);
-    err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, 2, data);
-    if (err_i2c != I2C_OK) {
-        return BNO_ERR_I2C;
-    }
-    *data = (i16)(data[0] | (data[1] << 8)); 
-    return BNO_OK;
-}
-
 char *BNO_err_str(const bno_err_t err) {
     switch (err) {
         case BNO_ERR_I2C:
@@ -117,7 +75,9 @@ bno_err_t BNO_set_pwr_mode(BNO *bno, const bno_pwr_t pwr) {
         return BNO_ERR_I2C;
     }
     bno->_pwr_mode = pwr;
-    BNO_set_page(bno, BNO_PAGE_0);
+    if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
+        return BNO_ERR_SETTING_PAGE;
+    }
 
     // Set Operation mode to selected mode
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
@@ -206,6 +166,9 @@ bno_err_t BNO_set_mag_conf(BNO *bno,
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;
     }
+    if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
+        return BNO_ERR_SETTING_PAGE;
+    }
     delayMs(2);
     return BNO_OK;
 }
@@ -219,7 +182,7 @@ bno_err_t BNO_set_gyr_conf(BNO *bno,
         return BNO_ERR_I2C;
     }
     if (BNO_set_page(bno, BNO_PAGE_1) != BNO_OK) {
-        return BNO_ERR_I2C;
+        return BNO_ERR_SETTING_PAGE;
     }
     if (I2C_write(bno->i2c, BNO_ADDR, BNO_GYR_CONFIG_0, range|bandwidth) != I2C_OK) {
         return BNO_ERR_I2C;
@@ -236,6 +199,10 @@ bno_err_t BNO_set_gyr_conf(BNO *bno,
     if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
         _I2C_send_stop(bno->i2c);
         return BNO_ERR_I2C;
+    }
+
+    if (BNO_set_page(bno, BNO_PAGE_0) != BNO_OK) {
+        return BNO_ERR_SETTING_PAGE;
     }
     delayMs(2);
     return BNO_OK;
@@ -315,3 +282,104 @@ bno_err_t BNO_on(BNO *bno) {
     }
     return BNO_OK;
 }
+
+bno_err_t BNO_temperature(BNO *bno, i8 *temp) {
+#ifdef BNO_SAFE_OPMODE
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+#endif
+    bno_err_t err_bno;
+    i2c_err_t err_i2c; 
+    u8 data;
+    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
+        return err_bno;
+    }
+    err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_TEMP, &data);
+    if (err_i2c != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+    *temp = (bno->_temp_unit) ? data*2 : data;
+    return BNO_OK;
+}
+
+
+bno_err_t BNO_euler_roll(BNO *bno, i16 *roll) {
+#ifdef BNO_SAFE_OPMODE
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+#endif
+    bno_err_t err_bno;
+    i2c_err_t err_i2c;
+    u8 data[2];
+    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
+        return err_bno;
+    }
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, &data[0]);
+    //if (err_i2c != I2C_OK) {
+    //    return BNO_ERR_I2C;
+    //}
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_MSB, &data[1]);
+    err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, 2, data);
+    if (err_i2c != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+    *data = (i16)(data[0] | (data[1] << 8)); 
+    return BNO_OK;
+}
+
+bno_err_t BNO_euler_pitch(BNO *bno, i16 *pitch) {
+#ifdef BNO_SAFE_OPMODE
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+#endif
+    bno_err_t err_bno;
+    i2c_err_t err_i2c;
+    u8 data[2];
+    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
+        return err_bno;
+    }
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, &data[0]);
+    //if (err_i2c != I2C_OK) {
+    //    return BNO_ERR_I2C;
+    //}
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_MSB, &data[1]);
+    err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_PITCH_LSB, 2, data);
+    if (err_i2c != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+    *data = (i16)(data[0] | (data[1] << 8)); 
+    return BNO_OK;
+}
+
+bno_err_t BNO_euler_yaw(BNO *bno, i16 *yaw) {
+#ifdef BNO_SAFE_OPMODE
+    if (BNO_set_opmode(bno, bno->mode) != BNO_OK) {
+        _I2C_send_stop(bno->i2c);
+        return BNO_ERR_I2C;
+    }
+#endif
+    bno_err_t err_bno;
+    i2c_err_t err_i2c;
+    u8 data[2];
+    if ((err_bno = BNO_set_page(bno, BNO_PAGE_0)) != BNO_OK) {
+        return err_bno;
+    }
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_LSB, &data[0]);
+    //if (err_i2c != I2C_OK) {
+    //    return BNO_ERR_I2C;
+    //}
+    //err_i2c = I2C_read(bno->i2c, BNO_ADDR, BNO_EUL_ROLL_MSB, &data[1]);
+    err_i2c = I2C_read_burst(bno->i2c, BNO_ADDR, BNO_EUL_HEADING_LSB, 2, data);
+    if (err_i2c != I2C_OK) {
+        return BNO_ERR_I2C;
+    }
+    *data = (i16)(data[0] | (data[1] << 8)); 
+    return BNO_OK;
+}
+
