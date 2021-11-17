@@ -158,7 +158,7 @@ typedef struct _USART_port {
     u32                 parity_enable;          /*!< USART enable parity */
     u32                 parity_even_odd;        /*!< USART parity even or odd */
     bool                interrupt_driven;       /*!< USART interrupt setting */
-} USART;
+} usart;
 
 
 /**
@@ -202,37 +202,37 @@ static __usart_it_handle __buf_usart6 = {
 // NEW FUNCTIONS
 
 
-usart_err_t     USART_init                      (USART *port);
+usart_err_t     usart_init                      (usart *port);
 
-usart_err_t     USART_write                     (USART port, i32 ch);
-usart_err_t     USART_printf                    (USART port, const str format, ...);
+usart_err_t     usart_write                     (usart port, i32 ch);
+usart_err_t     usart_printf                    (usart port, const str format, ...);
 
-i16             USART_read                      (USART port);
-u8              USART_getc                      (USART port);
-usart_err_t     USART_scan                      (USART port, char *buf, i32 len);
-usart_err_t     USART_input_echo                (USART *port);
-bool            USART_available                 (USART port);
+i16             usart_read                      (usart port);
+u8              usart_getc                      (usart port);
+usart_err_t     usart_scan                      (usart port, char *buf, i32 len);
+usart_err_t     usart_input_echo                (usart *port);
+bool            usart_available                 (usart port);
 
-void            USART_interrupt_enable          (USART *port);
-void            USART_interrupt_disable         (USART *port);
+void            usart_interrupt_enable          (usart *port);
+void            usart_interrupt_disable         (usart *port);
 
-void            USART_TXE_interrupt_enable      (USART *port);
-void            USART_TXE_interrupt_disable     (USART *port);
+void            usart_txe_interrupt_enable      (usart *port);
+void            usart_txe_interrupt_disable     (usart *port);
 
-void            USART_RXNE_interrupt_enable     (USART *port);
-void            USART_RXNE_interrupt_disable    (USART *port);
+void            usart_rxne_interrupt_enable     (usart *port);
+void            usart_rxne_interrupt_disable    (usart *port);
 
-void            USART_CLK_enable                (USART *port);
-void            USART_CLK_disable               (USART *port);
+void            usart_clk_enable                (usart *port);
+void            usart_clk_disable               (usart *port);
 
-void            USART_DMA_enable                (USART *port);
-void            USART_DMA_disable               (USART *port);
+void            usart_dma_enable                (usart *port);
+void            usart_dma_disable               (usart *port);
 
-void            USART_disable                   (USART *port);
+void            usart_disable                   (usart *port);
 
-u16             USART_compute_div               (u32 periph_clk, u32 baud);
-usart_err_t __USART_IT_TX_BUF_LEN(__usart_it_handle *buf);
-usart_err_t __USART_IT_RX_BUF_LEN(__usart_it_handle *buf);
+u16             usart_compute_div               (u32 periph_clk, u32 baud);
+usart_err_t     __USART_IT_TX_BUF_LEN           (__usart_it_handle *buf);
+usart_err_t     __USART_IT_RX_BUF_LEN           (__usart_it_handle *buf);
 
 
 #endif

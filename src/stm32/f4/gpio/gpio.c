@@ -18,7 +18,7 @@ void ADC1_enable(void) {
  *
  * @return GPIO_OK on success, GPIO_PIN_TOO_HIGH on `pin_num`>15
  */
-gpio_err_t GPIO_enable(const gpio_pin_t pin, gpio_mode_t mode) {
+gpio_err_t gpio_enable(const gpio_pin_t pin, gpio_mode_t mode) {
     if ( pin > PH15 ) {
         return GPIO_PIN_TOO_HIGH;
     } else if (mode > GPIO_OUTPUT_PULLDOWN) {
@@ -62,11 +62,11 @@ gpio_err_t GPIO_enable(const gpio_pin_t pin, gpio_mode_t mode) {
 }
 
 
-gpio_err_t GPIO_init(gpio_init_t *gpio) {
-    if (GPIO_enable(gpio->pin, gpio->mode) != GPIO_OK) {
+gpio_err_t gpio_init(gpio_init_t *gpio) {
+    if (gpio_enable(gpio->pin, gpio->mode) != GPIO_OK) {
         return GPIO_INVALID_SETTING;
     }
-    if (GPIO_settings(gpio->pin, gpio->speed, gpio->pull_up_down, gpio->push_pull_open_drain) != 
+    if (gpio_settings(gpio->pin, gpio->speed, gpio->pull_up_down, gpio->push_pull_open_drain) != 
             GPIO_OK) {
         return GPIO_INVALID_SETTING;
     } 
@@ -74,7 +74,7 @@ gpio_err_t GPIO_init(gpio_init_t *gpio) {
 }
 
 
-gpio_err_t GPIO_select_alternate(const gpio_pin_t pin, const u8 af) {
+gpio_err_t gpio_select_alternate(const gpio_pin_t pin, const u8 af) {
     if ( pin > PH15 ) {
         return GPIO_PIN_TOO_HIGH;
     }
@@ -115,7 +115,7 @@ gpio_err_t GPIO_select_alternate(const gpio_pin_t pin, const u8 af) {
  *
  * @return GPIO_OK on success, GPIO_PIN_TOO_HIGH when `pin`>15
  */
-gpio_err_t GPIO_settings(const gpio_pin_t pin, const u8 speed, const u8 pull_up_down, const u8 push_pull_open_drain) {
+gpio_err_t gpio_settings(const gpio_pin_t pin, const u8 speed, const u8 pull_up_down, const u8 push_pull_open_drain) {
     if (pin > PH15) {
         return GPIO_PIN_TOO_HIGH;
     } else if (speed > GPIO_HIGH_SPEED || 
@@ -154,7 +154,7 @@ gpio_err_t GPIO_settings(const gpio_pin_t pin, const u8 speed, const u8 pull_up_
  * @return errorcode
  *
  */
-gpio_err_t GPIO_set_speed(const gpio_pin_t pin, const u8 speed) {
+gpio_err_t gpio_set_speed(const gpio_pin_t pin, const u8 speed) {
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return GPIO_PIN_TOO_HIGH;
@@ -168,7 +168,7 @@ gpio_err_t GPIO_set_speed(const gpio_pin_t pin, const u8 speed) {
 
 
 
-gpio_err_t GPIO_set_pull_up_down(const gpio_pin_t pin, const u8 pull_up_down) {
+gpio_err_t gpio_set_pull_up_down(const gpio_pin_t pin, const u8 pull_up_down) {
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return GPIO_PIN_TOO_HIGH;
@@ -193,7 +193,7 @@ gpio_err_t GPIO_set_pull_up_down(const gpio_pin_t pin, const u8 pull_up_down) {
  *
  * @return GPIO_OK
  */
-gpio_err_t GPIO_toggle(const gpio_pin_t pin) {
+gpio_err_t gpio_toggle(const gpio_pin_t pin) {
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return GPIO_PIN_TOO_HIGH;
@@ -213,7 +213,7 @@ gpio_err_t GPIO_toggle(const gpio_pin_t pin) {
  *
  * @return GPIO_OK
  */
-gpio_err_t GPIO_write(const gpio_pin_t pin, const u8 on_off) {
+gpio_err_t gpio_write(const gpio_pin_t pin, const u8 on_off) {
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return GPIO_PIN_TOO_HIGH;
@@ -236,7 +236,7 @@ gpio_err_t GPIO_write(const gpio_pin_t pin, const u8 on_off) {
  *
  * @return digital value of pin
  */
-u8 GPIO_read_digital(const gpio_pin_t pin) {
+u8 gpio_read_digital(const gpio_pin_t pin) {
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return 0;
@@ -253,7 +253,7 @@ u8 GPIO_read_digital(const gpio_pin_t pin) {
  *
  * @return GPIO_PIN_TOO_HIGH if port is too high, GPIO_OK on success
  */
-gpio_err_t GPIO_lock(const gpio_pin_t pin) {
+gpio_err_t gpio_lock(const gpio_pin_t pin) {
     if ( pin > PH15 ) {
         return GPIO_PIN_TOO_HIGH;
     }
@@ -269,7 +269,6 @@ gpio_err_t GPIO_lock(const gpio_pin_t pin) {
 
 GPIO_TypeDef *_GPIO_fetch_port(const gpio_pin_t pin) {
     GPIO_TypeDef *port = NULL;
-    
 
     if ( pin < PB0 ) {
         port = GPIOA;

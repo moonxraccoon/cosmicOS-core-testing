@@ -9,14 +9,14 @@ volatile i32 mpu_gyro_calib[3];
 volatile i32 mpu_accel_calib[3];
 
 mpu_err_t MPU_init(mpu_t *mpu) {
-    if (I2C_init(&mpu->port) != I2C_OK) {
+    if (i2c_init(&mpu->port) != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
     i2c_err_t i2c_err;
     mpu_err_t mpu_err;
-    i2c_err = I2C_write(mpu->port, (mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), PWR_MGMT_1, 0x00);
+    i2c_err = i2c_write(mpu->port, (mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), PWR_MGMT_1, 0x00);
     if (i2c_err != I2C_OK) {
-        _I2C_send_stop(mpu->port);
+        _i2c_send_stop(mpu->port);
         return MPU_ERR_I2C_FAILED;
     }
     if ((mpu_err = MPU_set_gyro_range(mpu)) != MPU_OK) {
@@ -32,7 +32,7 @@ mpu_err_t MPU_init(mpu_t *mpu) {
 mpu_err_t MPU_set_gyro_range(mpu_t *mpu) {
     u8 data = (mpu->gyro_range << GYRO_CONF_OFFSET);
     i2c_err_t err;
-    err = I2C_write(mpu->port,(mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_CONFIG, data); 
+    err = i2c_write(mpu->port,(mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_CONFIG, data); 
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -43,7 +43,7 @@ mpu_err_t MPU_set_gyro_range(mpu_t *mpu) {
 mpu_err_t MPU_set_accel_range(mpu_t *mpu) {
     u8 data = (mpu->accel_range << ACCEL_CONF_OFFSET);
     i2c_err_t err;
-    err = I2C_write(mpu->port,(mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_CONFIG, data); 
+    err = i2c_write(mpu->port,(mpu->alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_CONFIG, data); 
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -55,7 +55,7 @@ mpu_err_t MPU_set_accel_range(mpu_t *mpu) {
 mpu_err_t MPU_gyro_x_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_XOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_XOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -71,7 +71,7 @@ mpu_err_t MPU_gyro_x_raw(mpu_t mpu, i32 *data) {
 mpu_err_t MPU_gyro_y_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_YOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_YOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -84,7 +84,7 @@ mpu_err_t MPU_gyro_y_raw(mpu_t mpu, i32 *data) {
 mpu_err_t MPU_gyro_z_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_ZOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), GYRO_ZOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -117,7 +117,7 @@ mpu_err_t MPU_accel_x_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
     
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_XOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_XOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -130,7 +130,7 @@ mpu_err_t MPU_accel_x_raw(mpu_t mpu, i32 *data) {
 mpu_err_t MPU_accel_y_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_YOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_YOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }
@@ -143,7 +143,7 @@ mpu_err_t MPU_accel_y_raw(mpu_t mpu, i32 *data) {
 mpu_err_t MPU_accel_z_raw(mpu_t mpu, i32 *data) {
     u8 out[2] = {0, 0}; 
     i2c_err_t err;
-    err = I2C_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_ZOUT_H, 2, out);
+    err = i2c_read_burst(mpu.port, (mpu.alt_addr ? MPU_ADDR_ALT : MPU_ADDR), ACCEL_ZOUT_H, 2, out);
     if (err != I2C_OK) {
         return MPU_ERR_I2C_FAILED;
     }

@@ -214,30 +214,30 @@ volatile static clock_t rcc_hse_25_mhz_to_96_mhz = {
 
 volatile static clock_t *rcc_active_clock;
 
-void RCC_system_clock_config    (clock_t clock);
+void rcc_system_clock_config    (clock_t clock);
 
-void RCC_periphclock_enable     (rcc_clock_port_t port, u32 periph, u8 enable);
-void RCC_set_pllm_pre           (u32 pll_m);
-void RCC_set_plln_pre           (u32 pll_n);
-void RCC_set_pllp_pre           (u32 pll_p);
-void RCC_set_pllq_pre           (u32 pll_q);
-void RCC_set_ahb_pre            (rcc_ahb_pre_t ahb_pre);
-void RCC_set_apb1_pre           (rcc_apb1_pre_t apb1_pre);
-void RCC_set_apb2_pre           (rcc_apb2_pre_t apb2_pre);
+void rcc_periphclock_enable     (rcc_clock_port_t port, u32 periph, u8 enable);
+void rcc_set_pllm_pre           (u32 pll_m);
+void rcc_set_plln_pre           (u32 pll_n);
+void rcc_set_pllp_pre           (u32 pll_p);
+void rcc_set_pllq_pre           (u32 pll_q);
+void rcc_set_ahb_pre            (rcc_ahb_pre_t ahb_pre);
+void rcc_set_apb1_pre           (rcc_apb1_pre_t apb1_pre);
+void rcc_set_apb2_pre           (rcc_apb2_pre_t apb2_pre);
 
-void RCC_set_osc                (rcc_osc_t osc);
-void RCC_set_sysclk_src         (rcc_sysclksrc_t src);
-void RCC_set_pll_src            (rcc_pllsrc_t src);
+void rcc_set_osc                (rcc_osc_t osc);
+void rcc_set_sysclk_src         (rcc_sysclksrc_t src);
+void rcc_set_pll_src            (rcc_pllsrc_t src);
 
-void RCC_reset_osc              (rcc_osc_t osc);
-void RCC_reset_ahb_pre          (rcc_ahb_pre_t ahb_pre);
-void RCC_reset_apb1_pre         (rcc_apb1_pre_t apb1_pre);
-void RCC_reset_apb2_pre         (rcc_apb2_pre_t apb2_pre);
+void rcc_reset_osc              (rcc_osc_t osc);
+void rcc_reset_ahb_pre          (rcc_ahb_pre_t ahb_pre);
+void rcc_reset_apb1_pre         (rcc_apb1_pre_t apb1_pre);
+void rcc_reset_apb2_pre         (rcc_apb2_pre_t apb2_pre);
 
-bool RCC_osc_rdy                (rcc_osc_t osc);
-void RCC_wait_osc_rdy           (rcc_osc_t osc);
-bool RCC_sysclk_rdy             (rcc_sysclksrc_t src);
-void RCC_wait_sysclk_rdy        (rcc_sysclksrc_t src);
+bool rcc_osc_rdy                (rcc_osc_t osc);
+void rcc_wait_osc_rdy           (rcc_osc_t osc);
+bool rcc_sysclk_rdy             (rcc_sysclksrc_t src);
+void rcc_wait_sysclk_rdy        (rcc_sysclksrc_t src);
 
 
 

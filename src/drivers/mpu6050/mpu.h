@@ -134,7 +134,7 @@ typedef enum _mpu_err_t {
  * MPU sensor structure
  */
 typedef struct _mpu_t {
-    I2C                 port;
+    i2c                 port;
     bool                alt_addr;
     mpu_gyro_range_t    gyro_range; 
     mpu_accel_range_t   accel_range;

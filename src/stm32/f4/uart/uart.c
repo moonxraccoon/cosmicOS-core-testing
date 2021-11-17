@@ -19,37 +19,37 @@
  *
  * @return usart_err_t `USART_UNDEFINED` if `port.usart=NULL`, `USART_OK` on success
  */
-usart_err_t USART_init(USART *port) {
+usart_err_t usart_init(usart *port) {
     if (port == NULL) {
         return USART_ERR_UNDEFINED;
     }
 
     if ( port->usart == USART1) {
         //RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-        GPIO_enable(USART1_RX, GPIO_ALTERNATE); 
-        GPIO_enable(USART1_TX, GPIO_ALTERNATE); 
-        GPIO_select_alternate(USART1_RX, GPIO_AF07);
-        GPIO_select_alternate(USART1_TX, GPIO_AF07);
+        gpio_enable(USART1_RX, GPIO_ALTERNATE); 
+        gpio_enable(USART1_TX, GPIO_ALTERNATE); 
+        gpio_select_alternate(USART1_RX, GPIO_AF07);
+        gpio_select_alternate(USART1_TX, GPIO_AF07);
         RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
-        (port->usart)->BRR = USART_compute_div(apb2_freq, port->baud); 
+        (port->usart)->BRR = usart_compute_div(apb2_freq, port->baud); 
         port->__it_buf = &__buf_usart1;
     } else if (port->usart == USART2) {
         //RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-        GPIO_enable(USART2_RX, GPIO_ALTERNATE); 
-        GPIO_enable(USART2_TX, GPIO_ALTERNATE); 
-        GPIO_select_alternate(USART2_RX, GPIO_AF07);
-        GPIO_select_alternate(USART2_TX, GPIO_AF07);
+        gpio_enable(USART2_RX, GPIO_ALTERNATE); 
+        gpio_enable(USART2_TX, GPIO_ALTERNATE); 
+        gpio_select_alternate(USART2_RX, GPIO_AF07);
+        gpio_select_alternate(USART2_TX, GPIO_AF07);
         RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
-        (port->usart)->BRR = USART_compute_div(apb1_freq, port->baud); 
+        (port->usart)->BRR = usart_compute_div(apb1_freq, port->baud); 
         port->__it_buf = &__buf_usart2;
     } else if (port->usart == USART6) {
         //RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-        GPIO_enable(USART6_RX, GPIO_ALTERNATE); 
-        GPIO_enable(USART6_TX, GPIO_ALTERNATE); 
-        GPIO_select_alternate(USART6_RX, GPIO_AF07);
-        GPIO_select_alternate(USART6_TX, GPIO_AF07);
+        gpio_enable(USART6_RX, GPIO_ALTERNATE); 
+        gpio_enable(USART6_TX, GPIO_ALTERNATE); 
+        gpio_select_alternate(USART6_RX, GPIO_AF07);
+        gpio_select_alternate(USART6_TX, GPIO_AF07);
         RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
-        (port->usart)->BRR = USART_compute_div(apb2_freq, port->baud); 
+        (port->usart)->BRR = usart_compute_div(apb2_freq, port->baud); 
         port->__it_buf = &__buf_usart6;
         
     } else {
@@ -64,7 +64,7 @@ usart_err_t USART_init(USART *port) {
     (port->usart)->CR1 |= port->parity_enable | port->parity_even_odd;
     (port->usart)->CR2 |= port->stop_bits;
     if (port->interrupt_driven) {
-        USART_interrupt_enable(port);
+        usart_interrupt_enable(port);
         if ((port->mode & USART_CHECK_RX_MODE) != 0) {
             (port->usart)->CR1 |= USART_RXNE_IE;
         }
@@ -91,7 +91,7 @@ usart_err_t USART_init(USART *port) {
  *
  * @return Error code (USART_OK on success, USART_IT_BUF_FULL on interrupt buffer overflow)
  */
-usart_err_t USART_write(USART port, i32 ch) {
+usart_err_t usart_write(usart port, i32 ch) {
     if (!port.interrupt_driven) {
         while(!((port.usart)->SR & USART_SR_TXE));
         (port.usart)->DR = (ch & 0xFF);
@@ -119,7 +119,7 @@ usart_err_t USART_write(USART port, i32 ch) {
  * @param periph_clk clock speed of given USART
  * @param baud baud rate
  */
-u16 USART_compute_div(u32 periph_clk, u32 baud) {
+u16 usart_compute_div(u32 periph_clk, u32 baud) {
     return (periph_clk + (baud/2U)) / baud; 
 }
 
@@ -130,7 +130,7 @@ u16 USART_compute_div(u32 periph_clk, u32 baud) {
  * @param port USART port
  * @return -1 if no input, characte read on input
  */
-i16 USART_read(USART port) {
+i16 usart_read(usart port) {
     char ch;
     
     __usart_it_handle *buf;
@@ -143,10 +143,10 @@ i16 USART_read(USART port) {
 }
 
 
-u8 USART_getc(USART port) {
+u8 usart_getc(usart port) {
     volatile int ch;
     do {
-        ch = USART_read(port);
+        ch = usart_read(port);
     } while (ch == -1);
     //USART_write(port, ch);
     return ch;
@@ -168,16 +168,16 @@ u8 USART_getc(USART port) {
  *
  * @return usart_err_t `USART_OK` on success
  */
-usart_err_t USART_scan(USART port, char *buf, i32 len) {
+usart_err_t usart_scan(usart port, char *buf, i32 len) {
     volatile int buf_i = 0;
-    int c = USART_read(port);
+    int c = usart_read(port);
     while (c != -1) {
         if (buf_i >= len) {
             return USART_OK;
         }
         buf[ buf_i++ ] = c;
         buf[ buf_i ] = '\0';
-        c = USART_read(port);
+        c = usart_read(port);
     }
     return USART_OK;
 }
@@ -193,7 +193,7 @@ usart_err_t USART_scan(USART port, char *buf, i32 len) {
  *
  * @return USART error code (USART_OK on success, USART_IT_BUF_FULL on interrupt buffer overflow)
  */
-usart_err_t USART_printf(USART port, const str format, ...) {
+usart_err_t usart_printf(usart port, const str format, ...) {
     char buff[USART_CHAR_BUFFER_LEN];
 
     va_list args;
@@ -202,10 +202,10 @@ usart_err_t USART_printf(USART port, const str format, ...) {
     vsprintf(buff, format, args);    
 
     for (int i = 0; i < strlen(buff); i++) {
-        if ( buff[i] == '\n' && USART_write(port, '\r') != USART_OK) {
+        if ( buff[i] == '\n' && usart_write(port, '\r') != USART_OK) {
             return USART_ERR_IT_BUF_FULL;   
         }
-        if (USART_write(port, buff[i]) != USART_OK) {
+        if (usart_write(port, buff[i]) != USART_OK) {
             return USART_ERR_IT_BUF_FULL;
         }
     }
@@ -214,7 +214,7 @@ usart_err_t USART_printf(USART port, const str format, ...) {
 }
 
 
-bool USART_available(USART port) {
+bool usart_available(usart port) {
     if (port.__it_buf->rx_in != port.__it_buf->rx_out) {
         return true;
     }
@@ -230,7 +230,7 @@ bool USART_available(USART port) {
  * 
  * @param `port` USART port struct to enable interrupt
  */
-inline void USART_interrupt_enable(USART *port) {
+inline void usart_interrupt_enable(usart *port) {
     if (port->usart == USART1) {
         NVIC_EnableIRQ(USART1_IRQn);
     } else if (port->usart == USART2) {
@@ -248,7 +248,7 @@ inline void USART_interrupt_enable(USART *port) {
  * 
  * @param `port` USART port struct to enable interrupt
  */
-inline void USART_interrupt_disable(USART *port) {
+inline void usart_interrupt_disable(usart *port) {
     if (port->usart == USART1) {
         NVIC_DisableIRQ(USART1_IRQn);
     } else if (port->usart == USART2) {
@@ -259,7 +259,7 @@ inline void USART_interrupt_disable(USART *port) {
 }
 
 
-void USART_disable(USART *port) {
+void usart_disable(usart *port) {
     (port->usart)->CR1 &= ~(USART_CR1_UE);
     if ( port->usart == USART1) {
         RCC->APB1RSTR |= RCC_APB2RSTR_USART1RST;

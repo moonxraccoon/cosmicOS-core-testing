@@ -14,32 +14,32 @@
  *
  * @return i2c_err_t error code
  */
-i2c_err_t I2C_init(I2C *port) {
+i2c_err_t i2c_init(i2c *port) {
     port->_set_up = false;
     if (port->i2c == I2C1) {
         // enabling GPIO 6,7, selecting alternate function, setting speed
-        GPIO_enable(PB6, GPIO_ALTERNATE);
-        GPIO_enable(PB7, GPIO_ALTERNATE);
-        GPIO_settings(PB6, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_settings(PB7, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_select_alternate(PB6, GPIO_AF04);
-        GPIO_select_alternate(PB7, GPIO_AF04);  
+        gpio_enable(PB6, GPIO_ALTERNATE);
+        gpio_enable(PB7, GPIO_ALTERNATE);
+        gpio_settings(PB6, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_settings(PB7, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_select_alternate(PB6, GPIO_AF04);
+        gpio_select_alternate(PB7, GPIO_AF04);  
         RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
     } else if (port->i2c == I2C2) {
-        GPIO_enable(PB10, GPIO_ALTERNATE);
-        GPIO_enable(PB11, GPIO_ALTERNATE);
-        GPIO_settings(PB10, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_settings(PB11, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_select_alternate(PB10, GPIO_AF04);
-        GPIO_select_alternate(PB11, GPIO_AF04);  
+        gpio_enable(PB10, GPIO_ALTERNATE);
+        gpio_enable(PB11, GPIO_ALTERNATE);
+        gpio_settings(PB10, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_settings(PB11, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_select_alternate(PB10, GPIO_AF04);
+        gpio_select_alternate(PB11, GPIO_AF04);  
         RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
     } else if (port->i2c == I2C3) {
-        GPIO_enable(PB8, GPIO_ALTERNATE);
-        GPIO_enable(PC9, GPIO_ALTERNATE);
-        GPIO_settings(PA8, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_settings(PC9, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
-        GPIO_select_alternate(PA8, GPIO_AF04);
-        GPIO_select_alternate(PC9, GPIO_AF04);  
+        gpio_enable(PB8, GPIO_ALTERNATE);
+        gpio_enable(PC9, GPIO_ALTERNATE);
+        gpio_settings(PA8, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_settings(PC9, GPIO_HIGH_SPEED, GPIO_PULL_UP, GPIO_OUT_OD);
+        gpio_select_alternate(PA8, GPIO_AF04);
+        gpio_select_alternate(PC9, GPIO_AF04);  
         RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
     } else {
         return I2C_ERR_PORT_UNDEFINED;
@@ -82,10 +82,10 @@ i2c_err_t I2C_init(I2C *port) {
     }
 
     (port->i2c)->CR2 |= port->frequency;
-    (port->i2c)->CCR = (u32) _I2C_ccr_calc(port);
+    (port->i2c)->CCR = (u32) _i2c_ccr_calc(port);
     (port->i2c)->CCR |= port->duty << 14;
     (port->i2c)->CCR |= port->mode << 15;
-    (port->i2c)->TRISE |= (u32) _I2C_trise_calc(port); 
+    (port->i2c)->TRISE |= (u32) _i2c_trise_calc(port); 
 
     (port->i2c)->CR1 |= I2C_CR1_PE;
     port->_set_up = true;
@@ -97,7 +97,7 @@ i2c_err_t I2C_init(I2C *port) {
  * @param port I2C init struct
  * @return ccr register value
  */
-f32 _I2C_ccr_calc(I2C *port) {
+f32 _i2c_ccr_calc(i2c *port) {
     f32 t_high = 0;
     i32 freq = port->frequency * 1000000;
     if (port->mode == I2C_STD_MODE) {
@@ -126,7 +126,7 @@ f32 _I2C_ccr_calc(I2C *port) {
  * @param port I2C init struct
  * @return ccr register value
  */
-f32 _I2C_trise_calc(I2C *port) {
+f32 _i2c_trise_calc(i2c *port) {
     f32 freq = 1.0 / (port->frequency * 1000000.0);
     if (port->mode == I2C_STD_MODE) {
         return (I2C_SM_SCL_RISE_MAX / freq) + 1.0;
@@ -149,7 +149,7 @@ f32 _I2C_trise_calc(I2C *port) {
  *
  * @return byte read from the I2C device (u8)
  */
-i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
+i2c_err_t i2c_read(i2c port, u8 slave, u8 memaddr, u8 *data) {
 
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
@@ -165,7 +165,7 @@ i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
 
     for(u32 i = 0; i < port.timeout && (port.i2c)->SR2 & I2C_SR2_BUSY; i++) {
         while((SysTick->CTRL & CTRL_COUNTFLAG) == 0);
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
         if (i == port.timeout - 1) {
@@ -179,12 +179,12 @@ i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
     //    }
     //}
     // Generate start condition
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err;
     }
 
     // Send address of slave
-    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
             
@@ -194,11 +194,11 @@ i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
     // check TXE flag
     while(!((port.i2c)->SR1 & I2C_SR1_TXE)); 
     //// GENERATE RESTART CONDITION
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err;
     }
     //// put address in read mode
-    if ((err = _I2C_send_addr(port, slave, I2C_READ)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_READ)) != I2C_OK) {
         return err;
     }
     //disable ACK
@@ -226,7 +226,7 @@ i2c_err_t I2C_read(I2C port, u8 slave, u8 memaddr, u8 *data) {
  *
  * @return error-code - error code
  */
-i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
+i2c_err_t i2c_read_burst(i2c port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -245,7 +245,7 @@ i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     SysTick->CTRL = CTRL_ENABLE | CTRL_CLKSRC;
     for(u32 i = 0; i < port.timeout && (port.i2c)->SR2 & I2C_SR2_BUSY; i++) {
         while((SysTick->CTRL & CTRL_COUNTFLAG) == 0);
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
         if (i == port.timeout - 1) {
@@ -255,11 +255,11 @@ i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     SysTick->CTRL = 0x00;
 
     // GENERATE START CONDITION
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err; 
     }
     // *NEW* SEND SLAVE ADDRESS
-    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
     tmp = (port.i2c)->SR2;
@@ -267,18 +267,18 @@ i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     (port.i2c)->DR = memaddr;
     // check TXE flag
     while(!((port.i2c)->SR1 & I2C_SR1_TXE)) {
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
     }
     // GENERATE  RESTART CONDITION
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err;
     }
     
     
     // SEND READ ADDR IN READ MODE
-    if ((err = _I2C_send_addr(port, slave, I2C_READ)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_READ)) != I2C_OK) {
         return err;
     }
     
@@ -322,7 +322,7 @@ i2c_err_t I2C_read_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
 
 
 
-i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
+i2c_err_t i2c_write_burst(i2c port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -336,7 +336,7 @@ i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     SysTick->CTRL = CTRL_ENABLE | CTRL_CLKSRC;
     for(u32 i = 0; i < port.timeout && (port.i2c)->SR2 & I2C_SR2_BUSY; i++) {
         while((SysTick->CTRL & CTRL_COUNTFLAG) == 0);
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
         if (i == port.timeout - 1) {
@@ -351,13 +351,13 @@ i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     //        return err;
     //    }
     //}
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err;
     }
     
     
     // SEND WRITE ADDRESS
-    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
 
@@ -377,7 +377,7 @@ i2c_err_t I2C_write_burst(I2C port, u8 slave, u8 memaddr, u8 n, u8 *data) {
     return I2C_OK;
 }
 
-i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data) {
+i2c_err_t i2c_write(i2c port, u8 slave, u8 memaddr, u8 data) {
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
     }
@@ -391,7 +391,7 @@ i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data) {
     SysTick->CTRL = CTRL_ENABLE | CTRL_CLKSRC;
     for(u32 i = 0; i < port.timeout && (port.i2c)->SR2 & I2C_SR2_BUSY; i++) {
         while((SysTick->CTRL & CTRL_COUNTFLAG) == 0);
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
         if (i == port.timeout - 1) {
@@ -402,17 +402,17 @@ i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data) {
 
 
     while((port.i2c)->SR2 & I2C_SR2_BUSY) {
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
     }
-    if ((err = _I2C_send_start(port)) != I2C_OK) {
+    if ((err = _i2c_send_start(port)) != I2C_OK) {
         return err;
     }
     
     
     // SEND WRITE ADDRESS
-    if ((err = _I2C_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
+    if ((err = _i2c_send_addr(port, slave, I2C_WRITE)) != I2C_OK) {
         return err;
     }
 
@@ -431,7 +431,7 @@ i2c_err_t I2C_write(I2C port, u8 slave, u8 memaddr, u8 data) {
     return I2C_OK;
 }
 
-i2c_err_t I2C_get_err(I2C port) {
+i2c_err_t i2c_get_err(i2c port) {
     if (port.i2c->SR1 & I2C_BERR) {
         return I2C_ERR_BUS;
     } else if (port.i2c->SR1 & I2C_ARLOERR) {
@@ -454,7 +454,7 @@ i2c_err_t I2C_get_err(I2C port) {
  * @param port port to generate start
  * @return err `I2C_OK` on success, otherwise `I2C_ERR_x`
  */
-i2c_err_t _I2C_send_start(I2C port) {
+i2c_err_t _i2c_send_start(i2c port) {
     // return `I2C_ERR_NOT_CONFIGURED` if port is not set up
     if (!port._set_up) {
         return I2C_ERR_NOT_CONFIGURED;
@@ -465,7 +465,7 @@ i2c_err_t _I2C_send_start(I2C port) {
     port.i2c->CR1 |= I2C_CR1_START;
     // wait until SB bit is set unless error occurs
     while (!(port.i2c->SR1 & I2C_SR1_SB)) {
-        if ((err = I2C_get_err(port)) != I2C_OK) {
+        if ((err = i2c_get_err(port)) != I2C_OK) {
             return err;
         }
     } 
@@ -473,28 +473,28 @@ i2c_err_t _I2C_send_start(I2C port) {
 }
 
 
-i2c_err_t _I2C_send_addr(I2C port, u8 addr, bool rw) {
-    _I2C_send_data(port, (rw)?((addr<<1)|1):(addr<<1)); 
+i2c_err_t _i2c_send_addr(i2c port, u8 addr, bool rw) {
+    _i2c_send_data(port, (rw)?((addr<<1)|1):(addr<<1)); 
     i2c_err_t err = I2C_OK; 
     while(!((port.i2c)->SR1 & I2C_SR1_ADDR)) {
-        if ((err = I2C_get_err(port)) == I2C_ERR_AF) {
+        if ((err = i2c_get_err(port)) == I2C_ERR_AF) {
             return err;
         }
     }
     return err;
 }
 
-i2c_err_t _I2C_send_data(I2C port, u8 data) {
+i2c_err_t _i2c_send_data(i2c port, u8 data) {
     port.i2c->DR = data;
     return I2C_OK;
 }
 
-i2c_err_t _I2C_send_stop(I2C port) { 
+i2c_err_t _i2c_send_stop(i2c port) { 
     (port.i2c)->CR1 |= I2C_CR1_STOP; 
     return I2C_OK;
 }
 
-str I2C_get_err_str(i2c_err_t err) {
+str i2c_get_err_str(i2c_err_t err) {
     switch (err) {
         case I2C_ERR_AF:
             return "[I2C] acknowledge failure";
@@ -515,7 +515,7 @@ str I2C_get_err_str(i2c_err_t err) {
         case I2C_ERR_FREQ_TOO_HIGH:
             return "[I2C] set frequency too high";
         case I2C_ERR_NOT_CONFIGURED:
-            return "[I2C] port not set up: call `I2C_init()`";
+            return "[I2C] port not set up: call `i2c_init()`";
         case I2C_ERR_PORT_UNDEFINED:
             return "[I2C] port unavailable for this MCU or undefined";
         case I2C_ERR_PORT_NOT_AVAILABLE:
@@ -526,7 +526,7 @@ str I2C_get_err_str(i2c_err_t err) {
 }
 
 
-i2c_err_t I2C_handle_err(I2C port, i2c_err_t err) {
+i2c_err_t i2c_handle_err(i2c port, i2c_err_t err) {
 
 
     return I2C_OK;

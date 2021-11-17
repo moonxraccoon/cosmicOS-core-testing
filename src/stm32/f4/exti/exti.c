@@ -5,7 +5,7 @@
 
 
 
-exti_err_t EXTI_select_trigger(u32 lines, exti_trigger_t trigger) {
+exti_err_t exti_select_trigger(u32 lines, exti_trigger_t trigger) {
     if (lines & EXTI_RESERVED) {
         return EXTI_LINES_RESERVED;
     }
@@ -32,7 +32,7 @@ exti_err_t EXTI_select_trigger(u32 lines, exti_trigger_t trigger) {
 
 
 
-exti_err_t EXTI_unmask(u32 lines) {
+exti_err_t exit_unmask(u32 lines) {
     if (lines & EXTI_RESERVED) {
         return EXTI_LINES_RESERVED;
     }
@@ -43,7 +43,7 @@ exti_err_t EXTI_unmask(u32 lines) {
 }
 
 
-exti_err_t EXTI_nvic_enable_irq(u8 pin) {
+exti_err_t exti_nvic_enable_irq(u8 pin) {
     if (pin == 0) {
         NVIC_EnableIRQ(EXTI0_IRQn);
     } else if (pin == 1) {
@@ -65,14 +65,14 @@ exti_err_t EXTI_nvic_enable_irq(u8 pin) {
 }
 
 
-exti_err_t EXTI_attach_gpio(const gpio_pin_t pin, exti_trigger_t trigger) {
+exti_err_t exti_attach_gpio(const gpio_pin_t pin, exti_trigger_t trigger) {
     if (pin > 15) {
         return EXTI_PIN_TOO_HIGH;
     }
 
     __disable_irq();
     
-    GPIO_enable(pin, GPIO_INPUT);
+    gpio_enable(pin, GPIO_INPUT);
     GPIO_TypeDef *port = _GPIO_fetch_port(pin);
     if (port == NULL) {
         return EXTI_PIN_TOO_HIGH;
@@ -85,17 +85,17 @@ exti_err_t EXTI_attach_gpio(const gpio_pin_t pin, exti_trigger_t trigger) {
     // Don't try to understand this, if you don't want you mind to blow up lol
     SYSCFG->EXTICR[(pin/4) % 4] |= (exti_port << ((pin % SYSCFG_EXTI_PORTS_PER_REG) * SYSCFG_EXTI_BITNUM)); 
     
-    if ( EXTI_unmask( (1 << pin) ) != EXTI_OK) {
+    if ( exti_unmask( (1 << pin) ) != EXTI_OK) {
         __enable_irq();
         return EXTI_LINES_RESERVED;
     }
 
-    if ( EXTI_select_trigger((1<<pin), trigger) != EXTI_OK ) {
+    if ( exti_select_trigger((1<<pin), trigger) != EXTI_OK ) {
         __enable_irq();
         return EXTI_LINES_RESERVED;
     }
 
-    EXTI_nvic_enable_irq(pin);
+    exti_nvic_enable_irq(pin);
 
     __enable_irq();
     return EXTI_OK;

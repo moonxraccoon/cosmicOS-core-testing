@@ -54,20 +54,20 @@ typedef enum timer_err {
 
 
 
-tim_err_t TIM_init(const struct _timer *port);
+tim_err_t   timer_init            (const struct _timer *port);
 
-tim_err_t TIM_set_prescaler(const struct _timer *port);
-tim_err_t TIM_set_autoreload(const struct _timer *port);
-tim_err_t TIM_set_dir(const struct _timer *port);
+tim_err_t   timer_set_prescaler   (const struct _timer *port);
+tim_err_t   timer_set_autoreload  (const struct _timer *port);
+tim_err_t   timer_set_dir         (const struct _timer *port);
 
-tim_err_t TIM_reset_count(const struct _timer *port);
+tim_err_t   timer_reset_count     (const struct _timer *port);
 
-bool TIM_is_TIM2_5(const struct _timer *port);
-void TIM_rcc_enable(const struct _timer *port);
-void TIM_rcc_disable(const struct _timer *port);
+bool        timer_is_TIM2_5       (const struct _timer *port);
+void        timer_rcc_enable      (const struct _timer *port);
+void        timer_rcc_disable     (const struct _timer *port);
 
-str TIM_err_str(const tim_err_t err);
+str         timer_err_str         (const tim_err_t err);
 
-void _TIM_NVIC_enable(const struct _timer *port);
+void        _timer_nvic_enable    (const struct _timer *port);
 
 #endif

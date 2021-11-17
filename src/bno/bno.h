@@ -332,7 +332,7 @@ typedef struct _BNO {
 
     //======| PUBLIC |======
     bno_opmode_t        mode;               /*!<BNO operation mode like `CONFIGMODE`,`IMU`, etc.*/
-    I2C                 i2c;                /*!<I2C port */
+    i2c                 i2c;                /*!<I2C port */
     bno_err_t           err;                /*!<current error code*/
 
 } bno055;
