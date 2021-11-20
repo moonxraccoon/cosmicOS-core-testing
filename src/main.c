@@ -91,7 +91,7 @@ int main(void) {
         usart_printf(port, "[BNO] init failed\n");
     }
     delayMs(1000);
-    
+     
     //BNO_set_temp_src(&bno, BNO_TEMP_SRC_ACC);
     bno.err = bno055_set_unit(
             &bno,
@@ -113,12 +113,27 @@ int main(void) {
         usart_printf(port, "[BNO] power mode set!\n"); 
     }
     usart_printf(port, "\n");
-    
+        
     
     //const clock_t *test = &RCC_25MHZ_TO_84MHZ;
     char usart_test[512];
     unsigned long int cycle = 0; 
     u8 bit_test = 0;
+
+    //=============| Datatype Testing |==================
+    vec3 v1 = v3(4,2,0);
+    vec3 v2 = v3(3,3,3);
+    vec4 v5 = v4(1,2,3,4);
+    v1 = vec_mult(v1, 3);
+    str v1_str = new_str(40);
+    vec_to_str(v5, v1_str);
+    usart_printf(port, "Vector test %s\n", v1_str);
+    if (type(cycle) == type_u32) {
+        usart_printf(port, "[Test] Type test: %s, %s\n", type_str(cycle), type_str(bit_test));
+    }
+
+
+
     //USART_printf(port, "APB1 clock: %d\n", apb1_freq);
     //uint32_t last_time = millis();
     if ((err_tim = timer_init(&tim5)) != TIM_OK) {

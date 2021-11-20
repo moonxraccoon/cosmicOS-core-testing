@@ -241,7 +241,7 @@ u8 gpio_read_digital(const gpio_pin_t pin) {
     if (port == NULL) {
         return 0;
     }
-    return (port->IDR & (1 << pin));
+    return (port->IDR & (1 << (pin % PINS_PER_PORT)));
 }
 
 
