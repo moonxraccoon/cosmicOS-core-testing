@@ -130,6 +130,8 @@ gpio_err_t      gpio_set_pull_up_down   (const gpio_pin_t pin, const u8 pull_up_
 
 gpio_err_t      gpio_toggle             (const gpio_pin_t pin);
 gpio_err_t      gpio_write              (const gpio_pin_t pin, const u8 on_off);
+gpio_err_t      gpio_on                 (const gpio_pin_t pin);
+gpio_err_t      gpio_off                (const gpio_pin_t pin);
 
 u8              gpio_read_digital       (const gpio_pin_t pin);
 u16             gpio_read_analog        (const gpio_pin_t pin);

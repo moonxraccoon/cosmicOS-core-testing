@@ -443,3 +443,8 @@ bno_err_t bno055_gyro_z(bno055 *bno, i16 *_z) {
     *data = (i16) (data[0] | (data[1] << 8)); 
     return BNO_OK;
 }
+
+bno_err_t bno055_gyro(bno055 *bno, vec3 *vec) {
+
+    return BNO_OK;
+}

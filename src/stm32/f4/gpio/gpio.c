@@ -226,6 +226,26 @@ gpio_err_t gpio_write(const gpio_pin_t pin, const u8 on_off) {
     return GPIO_OK;
 }
 
+gpio_err_t gpio_on(const gpio_pin_t pin) {
+    GPIO_TypeDef *port = _GPIO_fetch_port(pin);
+    if (port == NULL) {
+        return GPIO_PIN_TOO_HIGH;
+    }
+    port->BSRR |= (1 << (pin % PINS_PER_PORT));
+    return GPIO_OK;
+}
+
+
+gpio_err_t gpio_off(const gpio_pin_t pin) {
+    GPIO_TypeDef *port = _GPIO_fetch_port(pin);
+    if (port == NULL) {
+        return GPIO_PIN_TOO_HIGH;
+    }
+    port->BSRR |= (1 << ((pin % PINS_PER_PORT) + 16));
+    return GPIO_OK;
+}
+
+
 /**
  * GPIO digital read function
  *

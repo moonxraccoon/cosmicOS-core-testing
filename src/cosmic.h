@@ -28,8 +28,7 @@ typedef enum {
 // ======| unsigned int |======
 
 /**
- * 8-bit unsigned integer
- */
+ * 8-bit unsigned integer */
 typedef uint8_t         u8;
 /**
  * 16-bit unsigned integer

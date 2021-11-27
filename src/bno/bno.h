@@ -394,32 +394,32 @@ bno_err_t   bno055_set_page        (bno055 *bno, const bno_page_t page);
 bno_err_t   bno055_set_opmode      (bno055 *bno, const bno_opmode_t mode);
 
 bno_err_t   bno055_set_unit        (bno055 *bno,
-                                 const bno_temp_unitsel_t t_unit,
-                                 const bno_gyr_unitsel_t g_unit,
-                                 const bno_acc_unitsel_t a_unit,
-                                 const bno_eul_unitsel_t e_unit);
+                                    const bno_temp_unitsel_t t_unit,
+                                    const bno_gyr_unitsel_t g_unit,
+                                    const bno_acc_unitsel_t a_unit,
+                                    const bno_eul_unitsel_t e_unit);
 
 //bno_err_t BNO_set_acc_range(const bno_t bno, const bno_acc_range_t range);
 //bno_err_t BNO_set_acc_bandwidth(const bno_t bno, const bno_acc_band_t bandwidth);
 //bno_err_t BNO_set_acc_mode(const bno_t bno, const bno_acc_mode_t mode);
 bno_err_t   bno055_set_acc_conf    (bno055 *bno,
-                                 const bno_acc_range_t range,
-                                 const bno_acc_band_t bandwidth,
-                                 const bno_acc_mode_t mode);
+                                    const bno_acc_range_t range,
+                                    const bno_acc_band_t bandwidth,
+                                    const bno_acc_mode_t mode);
 //bno_err_t BNO_set_gyr_range(const bno_t bno, const bno_gyr_range_t range);
 //bno_err_t BNO_set_gyr_bandwidth(const bno_t bno, const bno_gyr_band_t bandwidth);
 //bno_err_t BNO_set_gyr_mode(const bno_t bno, const bno_gyr_mode_t mode);
 bno_err_t   bno055_set_gyr_conf    (bno055 *bno,
-                                 const bno_gyr_range_t range,
-                                 const bno_gyr_band_t bandwidth,
-                                 const bno_gyr_mode_t mode);
+                                    const bno_gyr_range_t range,
+                                    const bno_gyr_band_t bandwidth,
+                                    const bno_gyr_mode_t mode);
 //bno_err_t BNO_set_mag_out_rate(const bno_t bno, const bno_mag_rate_t rate);
 //bno_err_t BNO_set_mag_pwr_mode(const bno_t bno, const bno_mag_pwr_t pwr_mode);
 //bno_err_t BNO_set_mag_mode(const bno_t bno, const bno_mag_mode_t mode);
 bno_err_t   bno055_set_mag_conf    (bno055 *bno,
-                                 const bno_mag_rate_t out_rate,
-                                 const bno_mag_pwr_t pwr_mode,
-                                 const bno_mag_mode_t mode);
+                                    const bno_mag_rate_t out_rate,
+                                    const bno_mag_pwr_t pwr_mode,
+                                    const bno_mag_mode_t mode);
 
 bno_err_t   bno055_set_pwr_mode    (bno055 *bno, const bno_pwr_t pwr);
 bno_err_t   bno055_set_temp_src    (bno055 *bno, const enum bno_temp_src src);
